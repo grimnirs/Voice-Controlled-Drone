@@ -1,0 +1,24 @@
+services:
+  # ── Simulation: ArduPilot SITL + Gazebo Harmonic ──────────
+  sim:
+    build: ./sim
+    container_name: sim
+    ports:
+      - "5760:5760"   # MAVLink TCP — connect QGC or MAVSDK here
+    environment:
+      - GZ_WORLD=iris_runway.sdf   # Change to load a different world
+    volumes:
+      - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
+      - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
+    tty: true
+    stdin_open: true
+
+  # ── Logic Engine: Python + MAVSDK stub ────────────────────
+  logic-engine:
+    build: ./logic-engine
+    container_name: logic-engine
+    depends_on:
+      - sim
+    environment:
+      - SITL_ADDRESS=tcp://sim:5760
+    tty: true
