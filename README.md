@@ -1,4 +1,4 @@
-# Voice-Controlled Drone — Simulation Baseline
+# Voice-Controlled Drone 
 
 GPS-denied drone simulation environment.
 
