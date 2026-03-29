@@ -1,39 +1,17 @@
 # Voice-Controlled Drone — Simulation Baseline
 
 GPS-denied drone simulation environment.
-ArduPilot SITL + Gazebo Harmonic, orchestrated with Docker Compose.
 
 ## Quick Start
 
 ```bash
-# Clone the repo
-git clone <your-repo-url>
-cd <repo-name>
-
-# Build images (first time takes 20-40 min)
-docker compose build
-
-# Start simulation
-docker compose up sim
+git clone https://github.com/grimnirs/Voice-Controlled-Drone.git
+cd <repo>
+docker compose pull
+docker compose up
 ```
 
-## Test Logic Engine Connection
-
-In a separate terminal (while sim is running):
-
-```bash
-docker compose run logic-engine
-```
-
-You should see telemetry streaming from SITL, confirming the
-Logic Engine can communicate with the simulation over the Docker network.
-
-**Note:** SITL's TCP port 5760 accepts one connection at a time.
-Run QGC and the Logic Engine separately, not simultaneously.
-To support simultaneous connections, add `mavlink-router` to the
-sim container (documented as a future enhancement).
-
-## Project Structure
+## Project Structure-ish
 
 ```
 ├── docker-compose.yml      # Orchestrates all containers
