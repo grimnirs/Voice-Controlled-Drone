@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
     gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl \
     python3 python3-pip python3-dev python3-venv python3-setuptools \
+    meson ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
 # ── 2. Gazebo Harmonic from OSRF repository ─────────────────
@@ -67,14 +68,25 @@ WORKDIR /home/ardupilot/ardupilot_gazebo
 ENV GZ_VERSION=harmonic
 RUN mkdir build && cd build && cmake .. && make -j$(nproc)
 
-# ── 8. Environment variables for Gazebo ─────────────────────
+# ── 8. Build mavlink-router ─────────────────────────────────
+# Routes MAVLink from SITL to multiple clients (QGC + Logic Engine)
+RUN git clone --depth 1 --recurse-submodules \
+    https://github.com/mavlink-router/mavlink-router.git \
+    /home/ardupilot/mavlink-router
+
+WORKDIR /home/ardupilot/mavlink-router
+RUN meson setup build . && ninja -C build && sudo ninja -C build install
+
+# ── 9. Environment variables for Gazebo ─────────────────────
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/ardupilot_gazebo/worlds
 
-# ── 9. Entrypoint ───────────────────────────────────────────
+# ── 10. Configuration and entrypoint ────────────────────────
+WORKDIR /home/ardupilot
+COPY --chown=ardupilot:ardupilot mavlink-router.conf /home/ardupilot/mavlink-router.conf
 COPY --chown=ardupilot:ardupilot entrypoint.sh /home/ardupilot/entrypoint.sh
 RUN chmod +x /home/ardupilot/entrypoint.sh
 
-EXPOSE 5760
+EXPOSE 14550
 
 ENTRYPOINT ["/home/ardupilot/entrypoint.sh"]

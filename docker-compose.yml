@@ -1,10 +1,10 @@
 services:
-  # ── Simulation: ArduPilot SITL + Gazebo Harmonic ──────────
+  # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
   sim:
     build: ./sim
     container_name: sim
     ports:
-      - "5760:5760"   # MAVLink TCP — connect QGC or MAVSDK here
+      - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
     environment:
       - GZ_WORLD=iris_runway.sdf   # Change to load a different world
     volumes:
@@ -13,12 +13,12 @@ services:
     tty: true
     stdin_open: true
 
-  # ── Logic Engine: Python + MAVSDK stub ────────────────────
+  # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
     build: ./logic-engine
     container_name: logic-engine
     depends_on:
       - sim
     environment:
-      - SITL_ADDRESS=tcp://sim:5760
+      - SITL_ADDRESS=tcpout://sim:5790
     tty: true

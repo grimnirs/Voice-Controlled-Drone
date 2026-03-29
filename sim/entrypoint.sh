@@ -53,16 +53,11 @@ echo "Gazebo server running (PID: ${GZ_PID})"
 # ── Start ArduPilot SITL ────────────────────────────────────
 echo "============================================"
 echo "  Starting ArduPilot SITL"
-echo "  MAVLink on TCP port 5760"
 echo "============================================"
 cd "${ARDUPILOT_HOME}"
 
-# -v ArduCopter      : Vehicle type
-# -f gazebo-iris     : Frame (Iris quad for Gazebo)
-# --model JSON       : Use JSON protocol to connect to Gazebo
-# -N                 : Skip rebuild (already compiled)
-# --no-mavproxy      : Run SITL binary directly (TCP 5760)
-# -I0                : Instance 0
+# SITL runs with --no-mavproxy, exposing TCP 5760 internally.
+# mavlink-router will connect to this and fan out to QGC + Logic Engine.
 python3 Tools/autotest/sim_vehicle.py \
     -v ArduCopter \
     -f gazebo-iris \
@@ -73,14 +68,45 @@ python3 Tools/autotest/sim_vehicle.py \
 SITL_PID=$!
 
 echo "SITL starting (PID: ${SITL_PID})"
+
+# Wait for SITL to open its TCP port
+echo "Waiting for SITL TCP port..."
+sleep 5
+
+# ── Start MAVLink Router ────────────────────────────────────
+# mavlink-router only accepts raw IPs, so resolve hostnames first
+
+# Resolve host.docker.internal for QGC
+HOST_IP=$(getent hosts host.docker.internal | awk '{print $1}' || echo "")
+if [ -z "${HOST_IP}" ]; then
+    # Fallback: get the default gateway IP (Docker host)
+    HOST_IP=$(ip route | grep default | awk '{print $3}' || echo "")
+fi
+if [ -n "${HOST_IP}" ]; then
+    sed -i "s/host.docker.internal/${HOST_IP}/" /home/ardupilot/mavlink-router.conf
+    echo "Host (QGC) resolved to: ${HOST_IP}"
+else
+    echo "WARNING: Could not resolve host IP for QGC."
+    sed -i '/\[UdpEndpoint qgc\]/,/^$/d' /home/ardupilot/mavlink-router.conf
+fi
+
+echo "============================================"
+echo "  Starting MAVLink Router"
+echo "  SITL (TCP:5760) → QGC (UDP:14550)"
+echo "                   → Logic Engine (TCP:5790)"
+echo "============================================"
+mavlink-routerd -c /home/ardupilot/mavlink-router.conf &
+ROUTER_PID=$!
+
 echo ""
 echo "============================================"
-echo "  READY"
-echo "  Connect QGC → TCP 127.0.0.1:5760"
+echo "  READY — All services running"
+echo "  QGC:          UDP 14550 (auto-connect)"
+echo "  Logic Engine: TCP 5790 (Docker network)"
 echo "============================================"
 
-# Wait for either process to exit
-wait -n $GZ_PID $SITL_PID
+# Wait for any process to exit
+wait -n $GZ_PID $SITL_PID $ROUTER_PID
 echo "A process exited. Shutting down..."
-kill $GZ_PID $SITL_PID 2>/dev/null
+kill $GZ_PID $SITL_PID $ROUTER_PID 2>/dev/null
 wait
