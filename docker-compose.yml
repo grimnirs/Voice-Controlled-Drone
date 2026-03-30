@@ -2,7 +2,7 @@ services:
   # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
   sim:
     image: ghcr.io/grimnirs/sim:v0.2    # Ladda ner den färdiga miljön
-    # build: ./sim                      # Avkommentera för att bygga om lokalt
+    build: ./sim                     
     container_name: sim
     ports:
       - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
@@ -17,7 +17,7 @@ services:
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
     image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
-    # build: ./logic-engine                    # Avkommentera för att bygga om lokalt
+    build: ./logic-engine                   
     container_name: logic-engine
     depends_on:
       - sim
