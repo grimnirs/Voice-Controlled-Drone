@@ -5,6 +5,13 @@ GPS-denied drone simulation environment.
 ## Quick Start
 
 ```bash
+cd <Voice-Controlled-Drone>
+docker compose build 
+```
+
+**ELLER**
+Detta kommer ta kanske 10min och ca 8-10gb minne
+```bash
 git clone https://github.com/grimnirs/Voice-Controlled-Drone.git
 cd <repo>
 docker compose pull
