@@ -3,11 +3,11 @@
 GPS-denied drone simulation environment.
 
 ## QGroundControl setup
-> Press the Q in the upper left corner
-> Application settings
-> Comm links
-> Press 'add' under Links
-> Type:TCP   Server Address:127.0.0.1  Port:5760
+Press the Q in the upper left corner
+-> Application settings
+-> Comm links
+-> Press 'add' under Links
+-> Type:TCP   Server Address:127.0.0.1  Port:5760
 
 ## Quick Start
 
