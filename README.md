@@ -2,8 +2,22 @@
 
 GPS-denied drone simulation environment.
 
+## QGroundControl setup
+Press the Q in the upper left corner
+-> Application settings
+-> Comm links
+-> Press 'add' under Links
+-> Type:TCP   Server Address:127.0.0.1  Port:5760
+
 ## Quick Start
 
+```bash
+cd <Voice-Controlled-Drone>
+docker compose build 
+```
+
+**ELLER**
+Detta kommer ta kanske 10min och ca 8-10gb minne
 ```bash
 git clone https://github.com/grimnirs/Voice-Controlled-Drone.git
 cd <repo>
