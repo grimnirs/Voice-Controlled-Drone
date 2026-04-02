@@ -64,7 +64,8 @@ python3 Tools/autotest/sim_vehicle.py \
     --model JSON \
     -N \
     --no-mavproxy \
-    -I0 &
+    -I0 \
+    --custom-location=59.840406,17.64578,20,0 &
 SITL_PID=$!
 
 echo "SITL starting (PID: ${SITL_PID})"
