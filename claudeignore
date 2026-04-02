@@ -1,0 +1,6 @@
+# Heavy build context — no application code here
+sim/
+
+# Gazebo world/model files are SDF XML, not relevant to code tasks
+worlds/
+models/
