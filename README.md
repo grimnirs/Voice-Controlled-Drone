@@ -76,3 +76,8 @@ docker compose down
 # Clean up all images (reclaim disk space)
 docker system prune -a
 ```
+
+## Setup voice to text
+1. Clone whisper.cpp: `git clone https://github.com/ggerganov/whisper.cpp`
+2. Build it: `cmake -B build -DWHISPER_SDL2=ON && cmake --build build`
+3. Download model: `./models/download-ggml-model.sh base.en`
