@@ -13,7 +13,7 @@ Usage:
 import asyncio
 import os
 from mavsdk import System
-
+from mock_mavlink import txt_to_cmd
 
 async def run():
     address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")
@@ -37,8 +37,24 @@ async def run():
             print("=" * 40 + "\n")
             break
 
+    async def wait_until_ready(drone):
+        async for health in drone.telemetry.health():
+            if health.is_global_position_ok and health.is_home_position_ok:
+                print("Drone ready!")
+                break
+    
+    await wait_until_ready(drone)
+
+    async def cmd_handler(drone):
+        while True:
+            await asyncio.sleep(10)
+            await txt_to_cmd(drone, "takeoff")
+            await asyncio.sleep(10)
+            await txt_to_cmd(drone, "fly forward north")
+            
     # Print flight mode changes
     asyncio.ensure_future(print_flight_mode(drone))
+    asyncio.ensure_future(cmd_handler(drone))
 
     # Stream position telemetry
     print("Streaming telemetry (Ctrl+C to stop):\n")
@@ -49,7 +65,6 @@ async def run():
             f"Alt: {position.relative_altitude_m:6.2f} m",
             end="\r",
         )
-
 
 async def print_flight_mode(drone):
     async for mode in drone.telemetry.flight_mode():
