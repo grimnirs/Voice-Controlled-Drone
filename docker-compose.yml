@@ -1,7 +1,7 @@
 services:
   # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
   sim:
-    image: ghcr.io/grimnirs/sim:v0.2    # Ladda ner den färdiga miljön
+    image: ghcr.io/grimnirs/sim:v0.3    # Ladda ner den färdiga miljön
     build: ./sim                     
     container_name: sim
     ports:
