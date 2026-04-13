@@ -21,6 +21,8 @@ VALID_FLIGHT_COMMANDS = {
     "stop": [None]
 }
 
+# A dictionary for word to integer transcribing, since whisper.cpp sometimes writes
+# 2 as "two"
 WORD_TO_DIGIT = {
     "one": 1,
     "two": 2,
@@ -34,19 +36,21 @@ WORD_TO_DIGIT = {
     "ten": 10
 }
 
+# A list of valid units to use in commands
 VALID_UNITS = ["millimeters", "centimeters", "meters", "meter"]
 
+# This function checks for valid action and directions with regard to the
 def parse_and_validate(text):
     text = text.lower()
     
-    # 1. Identify the Action
+    # Identify the action
     action = None
     if "move" in text or "fly" in text: action = "move"
     elif "rotate" in text or "turn" in text: action = "rotate"
     elif "land" in text: action = "land"
     elif "stop" in text or "halt" in text: action = "stop"
     
-    # 2. Identify the Direction
+    # Identify the direction
     direction = None
     directions = ["forward", "backward", "left", "right", "up", "down", "clockwise", "counter-clockwise"]
     for d in directions:
@@ -54,7 +58,7 @@ def parse_and_validate(text):
             direction = d
             break
 
-    # 3. Validation Check
+    # Validation check
     # Check if the action exists and if the direction is valid for that specific action
     if action in VALID_FLIGHT_COMMANDS:
         allowed_directions = VALID_FLIGHT_COMMANDS[action]
@@ -96,11 +100,11 @@ def get_int(cmd):
             return WORD_TO_DIGIT[word]
         if word.isdigit():
             return int(word)
-            
+
+# --- RETRIEVE UNIT LOOP ---            
 def get_unit(cmd):
     words = cmd.lower().split()
     
-    # Clean the words (removes dots, commas, etc.)
     cleaned_words = [w.strip(string.punctuation) for w in words]
 
     for i in range(len(cleaned_words) - 1):
@@ -114,19 +118,21 @@ def get_unit(cmd):
             i = i + 1
             continue # ska vi ha en default?
 
+# --- CLEAN UP THE TEXT ---
 def clean_text(text):
     return text.lower().strip()
 
+# --- ONLY SEND THE COMMAND AND NOT DRONE&OVER ---
 def remove_triggers(text):
     return re.sub(r'\b(drone|over)\b', '', text, flags=re.IGNORECASE).strip()
 
 # --- MAIN STREAMING LOOP ---
+# USES A COMMAND BUFFER --> LIKE A WALKIE TALKIE
 async def main():
     command_buffer = []
     is_active = False
 
     for cmd in sys.stdin:
-        # cmd = cmd.strip()
         cmd = clean_text(cmd)
         if not cmd:
             continue
