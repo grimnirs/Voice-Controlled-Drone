@@ -1,5 +1,4 @@
 import sys
-import sys
 import json
 import asyncio
 import os
@@ -11,6 +10,9 @@ import re
 #./bin/whisper-stream -m ../models/ggml-base.en.bin --step 500 --length 5000 | python3 ../../logic-engine/VTT.py
 #så att den körs när man kör main, så börjar den lyssna direkt
 #man kan inte säga move to the left, edgecase
+
+#Nästa steg: "move to the left 10 meters and then move to the left 5 meters and then move up 3 meters..."
+#Förbättra hanteringen av kommandon, just nu krävs en del timeing med samplingen
 
 # A dictionary of valid Action -> Direction pairs
 VALID_FLIGHT_COMMANDS = {
