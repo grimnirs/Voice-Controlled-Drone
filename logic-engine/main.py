@@ -47,11 +47,20 @@ async def run():
 
     async def cmd_handler(drone):
         while True:
-            await asyncio.sleep(10)
-            await txt_to_cmd(drone, "takeoff")
-            await asyncio.sleep(10)
-            await txt_to_cmd(drone, "fly forward north")
-            
+            try: 
+                await asyncio.sleep(10)
+                await txt_to_cmd(drone, "takeoff")
+                async for position in drone.telemetry.position():
+                    if position.relative_altitude_m >= 2.5:
+                        print("Reached correct altitude after takeoff!")
+                        break
+                await asyncio.sleep(5)
+                await txt_to_cmd(drone, "fly forward north")
+                break
+            except Exception as e:
+                print(f"cmd_handler failed: {e}")
+                await asyncio.sleep(5)
+                
     # Print flight mode changes
     asyncio.ensure_future(print_flight_mode(drone))
     asyncio.ensure_future(cmd_handler(drone))
