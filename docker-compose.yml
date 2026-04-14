@@ -14,6 +14,18 @@ services:
     tty: true
     stdin_open: true
 
+# -- Vision Injector ---------------------------------#
+  vision-injector:
+    build: ./vision_efk
+    container_name: vision-injector
+    depends_on:
+      - sim
+    environment:
+      - SITL_ADDRESS=tcp:sim:5790
+    tty: true
+    restart: unless-stopped
+    command: python vision_injector.py # ??
+
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
     image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
@@ -21,8 +33,9 @@ services:
     container_name: logic-engine
     depends_on:
       - sim
+      - vision-injector
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
-      - ./logic-engine:/app    #
+      - ./logic-engine:/app    
     tty: true

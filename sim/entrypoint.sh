@@ -65,7 +65,10 @@ python3 Tools/autotest/sim_vehicle.py \
     -N \
     --no-mavproxy \
     -I0 \
-    --custom-location=59.840406,17.64578,20,0 &
+    --param EK3_SRC1_POSXY=6 \
+    --param EK3_SRC1_VELXY=6 \
+    --param EK3_SRC1_POSZ=6 \
+    --param VISO_TYPE=1 &
 SITL_PID=$!
 
 echo "SITL starting (PID: ${SITL_PID})"
