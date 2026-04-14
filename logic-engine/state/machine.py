@@ -16,8 +16,8 @@ class StateMachine: #Implementera kill-switch, alla states kan gå till grounded
 
     ALLOWED_COMMANDS = {
         DroneState.GROUNDED: ["arm"],
-        DroneState.ARMED: ["disarm", "takeoff"],
-        DroneState.AIRBORNE: ["land", "move", "goto", "stop", "set_velocity"],
+        DroneState.ARMED: ["takeoff"],
+        DroneState.AIRBORNE: ["land", "fly", "rotate", "stop"],
         DroneState.LANDING: [],
     }
 
@@ -67,11 +67,11 @@ if __name__ == "__main__":
     except ValueError:
         pass
 
-    # can_execute: move only allowed when AIRBORNE
-    assert not sm.can_execute("move")
+    # can_execute: fly only allowed when AIRBORNE
+    assert not sm.can_execute("fly")
     sm.transition(DroneState.ARMED)
-    assert not sm.can_execute("move")
+    assert not sm.can_execute("fly")
     sm.transition(DroneState.AIRBORNE)
-    assert sm.can_execute("move")
+    assert sm.can_execute("fly")
 
     print("All tests passed!")

@@ -22,4 +22,6 @@ venv/
 CLAUDE.md
 ARCHITECTURE.md
 CONVENTIONS.md
-.claudeignoreclaudeignore
+.claudeignore
+claudeignore
+.claude/

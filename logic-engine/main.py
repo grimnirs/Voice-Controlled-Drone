@@ -15,7 +15,9 @@ import shared_variables
 import os
 import asyncio
 from mavsdk import System
+from mavsdk.telemetry import LandedState
 from command_handler import txt_to_cmd, DroneCommand
+from state.machine import DroneState
 
 
 latest_distance = 100.0 # Global variabel
@@ -64,8 +66,22 @@ async def run():
     async def odometry_watcher(drone):
         async for odom in drone.telemetry.odometry():
             shared_variables.latest_odom = odom
-    
+
+    async def landed_state_watcher(drone):
+        """Event-driven transition: LANDING → GROUNDED when the drone touches down.
+
+        Only fires the transition if the state machine is currently in LANDING,
+        otherwise ON_GROUND events during pre-arm/pre-takeoff would raise ValueError.
+        """
+        async for landed in drone.telemetry.landed_state():
+            if landed != LandedState.ON_GROUND:
+                continue
+            if shared_variables.sm.get_state() == DroneState.LANDING:
+                shared_variables.sm.transition(DroneState.GROUNDED)
+                print("[STATE] Landing complete → grounded")
+
     asyncio.create_task(odometry_watcher(drone))
+    asyncio.create_task(landed_state_watcher(drone))
 
     arm_cmd: DroneCommand = {
         "action": "arm"
@@ -81,6 +97,7 @@ async def run():
         "integer": 10,
         "unit": "meters"
     }  
+    
     
     async def cmd_handler(drone):
         # asyncio.create_task(watch_distance(drone))

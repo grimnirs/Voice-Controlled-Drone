@@ -1,8 +1,9 @@
-import shared_variables 
+import shared_variables
 from mavsdk.offboard import VelocityBodyYawspeed
 import math
 from typing import TypedDict, Optional
 import asyncio
+from state.machine import DroneState
  
 # TODO
 
@@ -16,13 +17,23 @@ class DroneCommand(TypedDict, total=False):
         direction: Optional[str]
         integer: Optional[int]
         unit: Optional[str]
-
+ 
 ACTIONS = {
     "arm":str,
     "start":str,
     "takeoff":str,
     "land":str,
     "fly":str,
+    "rotate":str,
+    "stop":str,
+}
+
+# Commands that trigger a state transition when they succeed.
+# Commands NOT in this dict are in-state actions (checked with can_execute).
+COMMAND_TO_STATE = {
+    "arm":     DroneState.ARMED,
+    "takeoff": DroneState.AIRBORNE,
+    "land":    DroneState.LANDING,
 }
 
 #NED - North, East, Down
@@ -242,28 +253,50 @@ async def cmd_stop(drone, command: DroneCommand):
     await drone.offboard.stop()
 
 async def txt_to_cmd(drone, command: DroneCommand):
-    action = command.get("action") 
-    if action is None or  action not in ACTIONS:
-        print(f"Unknown action '{action}'")
-    
-    elif action == "arm" or action == "start":
+    action = command.get("action")
+
+    # Normalize aliases before any permission check so ALLOWED_COMMANDS
+    # and COMMAND_TO_STATE only need to know the canonical name.
+    if action == "start":
+        action = "arm"
+
+    if action is None or action not in ACTIONS:
+        print(f"[CMD] Unknown action '{action}'")
+        return
+
+    sm = shared_variables.sm
+    target = COMMAND_TO_STATE.get(action)
+
+    # --- GATE ---
+    # State-changing command: check if the transition is allowed.
+    # In-state command: check if the action is allowed in the current state.
+    if target is not None:
+        if not sm.can_transition(target):
+            print(f"[STATE] Rejected '{action}': drone is {sm.get_state().value}")
+            return
+    else:
+        if not sm.can_execute(action):
+            print(f"[STATE] Rejected '{action}': drone is {sm.get_state().value}")
+            return
+
+    # --- DISPATCH ---
+    if action == "arm":
         await cmd_arm(drone, command)
-
     elif action == "takeoff":
-       await cmd_takeoff(drone, command)
-
+        await cmd_takeoff(drone, command)
     elif action == "fly":
         await cmd_fly(drone, command)
-
     elif action == "land":
         await cmd_land(drone, command)
-
     elif action == "rotate":
         await cmd_rotate(drone, command)
-    
     elif action == "stop":
         await cmd_stop(drone, command)
 
-    else:
-        print("Unknown command", {command})
-    
+    # --- COMMIT TRANSITION ON SUCCESS ---
+    # Only reached if dispatch returned without raising. State transitions
+    # happen AFTER the MAVSDK call so a failed command leaves state untouched.
+    if target is not None:
+        sm.transition(target)
+        print(f"[STATE] → {sm.get_state().value}")
+
