@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install pymavlink
+RUN pip install mavsdk
 
 CMD ["python", "vision_injector.py"]

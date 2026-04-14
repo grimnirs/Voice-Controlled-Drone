@@ -11,6 +11,12 @@ import asyncio
 # 3. Integrate in main with VTT
 # 4. Make velocity function (utökning om vi har tid sen)
 
+
+# 1. Add a lidar to your Gazibo Drone (Ray sensor?)
+# 2. Set parameters for GPS-denied arduPilot (EK3...)
+# 3. Bridging Lidar to Mavlink (Lidar distance --> odometry message)
+# 4. Odometry message --> MavSDK (--> cmd_fly)
+
 class DroneCommand(TypedDict, total=False):
         action: str
         direction: Optional[str]

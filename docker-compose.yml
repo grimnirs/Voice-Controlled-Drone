@@ -5,27 +5,29 @@ services:
     build: ./sim                     
     container_name: sim
     ports:
-      - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
+      - "14550:14550/udp" # MAVLink UDP — QGC auto-connects here
+      - "5790:5790"   
     environment:
-      - GZ_WORLD=iris_runway.sdf   # Change to load a different world
+      - GZ_WORLD=world.sdf   # Change to load a different world
+      - GZ_SIM_RESOURCE_PATH=/home/ardupilot/custom_worlds:/home/ardupilot/custom_models:/home/ardupilot/ardupilot/Tools/simulation_install/gazebo/models
     volumes:
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
       - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
     tty: true
     stdin_open: true
 
-# -- Vision Injector ---------------------------------#
+# -- Vision Injector ---------------------------------
   vision-injector:
     build: ./vision_efk
     container_name: vision-injector
     depends_on:
       - sim
     environment:
-      - SITL_ADDRESS=tcp:sim:5790
+      - SITL_ADDRESS=tcp://sim:5790
     tty: true
     restart: unless-stopped
-    command: python vision_injector.py # ??
-
+    #command: python vision_injector.py # ??
+  
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
     image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
@@ -35,7 +37,7 @@ services:
       - sim
       - vision-injector
     environment:
-      - SITL_ADDRESS=tcpout://sim:5790
+      - SITL_ADDRESS=tcp://sim:5790
     volumes:
       - ./logic-engine:/app    
     tty: true
