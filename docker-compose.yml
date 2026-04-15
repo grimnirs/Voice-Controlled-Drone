@@ -5,12 +5,11 @@ services:
     build: ./sim                     
     container_name: sim
     ports:
-      - "14550:14550/udp" # MAVLink UDP — QGC auto-connects here
-      - "5790:5790"   
+      - "14550:14550/udp" # MAVLink UDP — QGC auto-connects here  
     environment:
       - GZ_WORLD=world.sdf   # Change to load a different world
-      #- GZ_SIM_RESOURCE_PATH=/home/ardupilot/custom_models
       - GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/custom_models
+      - QT_QPA_PLATFORM=offscreen # Viktigt för Mac/Headless!
     volumes:
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
       - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
@@ -18,11 +17,11 @@ services:
     stdin_open: true
 
     healthcheck:
-      test: ["CMD-SHELL", "timeout 1s bash -c '</dev/tcp/127.0.0.1/5790' || exit 1"]
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 5790"]
       interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 20
+      start_period: 90s
     
 
 # -- Vision Injector ---------------------------------
@@ -30,12 +29,12 @@ services:
     build: ./vision_efk
     container_name: vision-injector
     depends_on:
-      - sim
+      sim:
+        condition: service_healthy
     environment:
-      - SITL_ADDRESS=tcp://sim:5790
+      - SITL_ADDRESS=tcpout://sim:5790
     tty: true
     restart: unless-stopped
-    #command: python vision_injector.py # ??
   
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
@@ -46,7 +45,7 @@ services:
       sim:
         condition: service_healthy
     environment:
-      - SITL_ADDRESS=tcp://sim:5790
+      - SITL_ADDRESS=tcpout://sim:5790
     volumes:
       - ./logic-engine:/app    
     tty: true

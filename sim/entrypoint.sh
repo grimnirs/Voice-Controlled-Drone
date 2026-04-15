@@ -67,7 +67,7 @@ python3 Tools/autotest/sim_vehicle.py \
     -I0 \
     --param EK3_SRC1_POSXY=6 \
     --param EK3_SRC1_VELXY=6 \
-    --param EK3_SRC1_POSZ=1 \   # 6 om vi använder vision_injector fullt ut enligt gubben i lådan
+    --param EK3_SRC1_POSZ=1 \  
     --param VISO_TYPE=1 \
     --param RNGFND1_TYPE=10 \
     --param RNGFND1_MIN_CM=10 \
