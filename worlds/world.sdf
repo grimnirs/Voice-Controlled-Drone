@@ -391,8 +391,7 @@
     
   <!--Including drone in world -->
   <include>
-      <uri>model://iris_with_standoffs</uri> 
-      <name>iris_demo</name>
+      <uri>model://iris_demo</uri> 
       <pose>-12 -10 0.2 0 0 0</pose> 
   </include>
 

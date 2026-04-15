@@ -1,6 +1,6 @@
 services:
   # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
-  sim:
+  sim: 
     image: ghcr.io/grimnirs/sim:v0.2    # Ladda ner den färdiga miljön
     build: ./sim                     
     container_name: sim
@@ -9,12 +9,21 @@ services:
       - "5790:5790"   
     environment:
       - GZ_WORLD=world.sdf   # Change to load a different world
-      - GZ_SIM_RESOURCE_PATH=/home/ardupilot/custom_worlds:/home/ardupilot/custom_models:/home/ardupilot/ardupilot/Tools/simulation_install/gazebo/models
+      #- GZ_SIM_RESOURCE_PATH=/home/ardupilot/custom_models
+      - GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/custom_models
     volumes:
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
       - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
     tty: true
     stdin_open: true
+
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1s bash -c '</dev/tcp/127.0.0.1/5790' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    
 
 # -- Vision Injector ---------------------------------
   vision-injector:
@@ -34,8 +43,8 @@ services:
     build: ./logic-engine                   
     container_name: logic-engine
     depends_on:
-      - sim
-      - vision-injector
+      sim:
+        condition: service_healthy
     environment:
       - SITL_ADDRESS=tcp://sim:5790
     volumes:
