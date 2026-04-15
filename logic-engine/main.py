@@ -37,7 +37,7 @@ async def run():
 
     print("Logic Engine Booting Up...")
 
-    for i in range(20, 0, -1):
+    for i in range(30, 0, -1):
         print(f"Connecting in {i} seconds...")
         await asyncio.sleep(1)
 

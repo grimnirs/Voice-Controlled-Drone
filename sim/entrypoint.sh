@@ -67,7 +67,7 @@ python3 Tools/autotest/sim_vehicle.py \
     -I0 \
     --param EK3_SRC1_POSXY=6 \
     --param EK3_SRC1_VELXY=6 \
-    --param EK3_SRC1_POSZ=1 \  
+    --param EK3_SRC1_POSZ=1 \
     --param VISO_TYPE=1 \
     --param RNGFND1_TYPE=10 \
     --param RNGFND1_MIN_CM=10 \
@@ -80,7 +80,7 @@ echo "SITL starting (PID: ${SITL_PID})"
 
 # Wait for SITL to open its TCP port
 echo "Waiting for SITL TCP port..."
-sleep 5
+sleep 15
 
 # ── Start MAVLink Router ────────────────────────────────────
 # mavlink-router only accepts raw IPs, so resolve hostnames first

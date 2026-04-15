@@ -1,51 +1,89 @@
 services:
-  # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
-  sim: 
-    image: ghcr.io/grimnirs/sim:v0.2    # Ladda ner den färdiga miljön
-    build: ./sim                     
+  sim:
+    image: ghcr.io/grimnirs/sim:v0.3
+    build: ./sim
     container_name: sim
     ports:
-      - "14550:14550/udp" # MAVLink UDP — QGC auto-connects here  
+      - "14550:14550/udp"
+      - "5790:5790"        # expose so you can debug from host if needed
     environment:
-      - GZ_WORLD=world.sdf   # Change to load a different world
-      - GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/custom_models
-      - QT_QPA_PLATFORM=offscreen # Viktigt för Mac/Headless!
+      - GZ_WORLD=world.sdf
     volumes:
-      - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
-      - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
+      - ./worlds:/home/ardupilot/custom_worlds:ro
+      - ./models:/home/ardupilot/custom_models:ro
     tty: true
     stdin_open: true
 
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z 127.0.0.1 5790"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 90s
-    
-
-# -- Vision Injector ---------------------------------
   vision-injector:
     build: ./vision_efk
     container_name: vision-injector
     depends_on:
-      sim:
-        condition: service_healthy
+      - sim
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
-    tty: true
     restart: unless-stopped
-  
-  # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
+    tty: true
+
   logic-engine:
-    image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
-    build: ./logic-engine                   
+    image: ghcr.io/grimnirs/logic-engine:v0.2
+    build: ./logic-engine
     container_name: logic-engine
     depends_on:
-      sim:
-        condition: service_healthy
+      - sim
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
-      - ./logic-engine:/app    
+      - ./logic-engine:/app
     tty: true
+
+# services:
+#   # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
+#   sim: 
+#     image: ghcr.io/grimnirs/sim:v0.2    # Ladda ner den färdiga miljön
+#     build: ./sim                     
+#     container_name: sim
+#     ports:
+#       - "14550:14550/udp" # MAVLink UDP — QGC auto-connects here  
+#     environment:
+#       - GZ_WORLD=world.sdf   # Change to load a different world
+#       - GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/custom_models
+#       - QT_QPA_PLATFORM=offscreen # Viktigt för Mac/Headless!
+#     volumes:
+#       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
+#       - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
+#     tty: true
+#     stdin_open: true
+
+#     healthcheck:
+#       test: ["CMD-SHELL", "nc -z 127.0.0.1 5790"]
+#       interval: 5s
+#       timeout: 5s
+#       retries: 20
+#       start_period: 90s
+    
+
+# -- Vision Injector ---------------------------------
+  # vision-injector:
+  #   build: ./vision_efk
+  #   container_name: vision-injector
+  #   depends_on:
+  #     sim:
+  #       condition: service_healthy
+  #   environment:
+  #     - SITL_ADDRESS=tcp://sim:5790
+  #   tty: true
+  #   restart: unless-stopped
+  
+  # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
+  # logic-engine:
+  #   image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
+  #   build: ./logic-engine                   
+  #   container_name: logic-engine
+  #   depends_on:
+  #     sim:
+  #       condition: service_healthy
+  #   environment:
+  #     - SITL_ADDRESS=tcpout://sim:5790
+  #   volumes:
+  #     - ./logic-engine:/app    
+  #   tty: true
