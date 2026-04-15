@@ -15,16 +15,30 @@ services:
     stdin_open: true
 
 # -- Vision Injector ---------------------------------#
-  vision-injector:
-    build: ./vision_efk
-    container_name: vision-injector
+  # vision-injector:
+  #   build: ./vision_efk
+  #   container_name: vision-injector
+  #   depends_on:
+  #     - sim
+  #   environment:
+  #     - SITL_ADDRESS=tcp:sim:5790
+  #   tty: true
+  #   restart: unless-stopped
+  #   command: python vision_injector.py # ??
+
+  # -- Camera sensor ---------------------------------#
+  camera-sensor:
+    build: ./models/optical_flow
+    container_name: camera_sensor
+    ports:
+    - "14551:14551/udp"   #MAVLink UDP - Optical flow
     depends_on:
-      - sim
-    environment:
-      - SITL_ADDRESS=tcp:sim:5790
+     - sim
+    command: sh -c "sleep 10 && python camera_sensor.py"
     tty: true
+    environment:
+       - SITL_ADDRESS=udpin:0.0.0.0:14551
     restart: unless-stopped
-    command: python vision_injector.py # ??
 
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
@@ -33,9 +47,9 @@ services:
     container_name: logic-engine
     depends_on:
       - sim
-      - vision-injector
+    #  - vision-injector
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
-      - ./logic-engine:/app    
+      - ./logic-engine:/app
     tty: true

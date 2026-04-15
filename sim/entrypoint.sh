@@ -65,10 +65,19 @@ python3 Tools/autotest/sim_vehicle.py \
     -N \
     --no-mavproxy \
     -I0 \
-    --param EK3_SRC1_POSXY=6 \
-    --param EK3_SRC1_VELXY=6 \
-    --param EK3_SRC1_POSZ=6 \
-    --param VISO_TYPE=1 &
+    --param SIM_FLOW_ENABLE=1 \
+    --param FLOW_TYPE=10 \
+    --param RNGFND1_TYPE=1 \
+    --param RNGFND1_PIN=0 \
+    --param RNGFND1_MIN_CM=20 \
+    --param RNGFND1_MAX_CM=700 \
+    --param EK3_SRC1_POSXY=0 \
+    --param EK3_SRC1_VELXY=5 \
+    --param EK3_SRC1_POSZ=1 \
+    --param EK3_SRC1_VELZ=0 \
+    --param EK3_SRC1_YAW=1 \
+    --param EK3_SRC_OPTIONS=0 \
+    --param SR0_EXTRA1=10 &
 SITL_PID=$!
 
 echo "SITL starting (PID: ${SITL_PID})"
@@ -81,16 +90,23 @@ sleep 5
 # mavlink-router only accepts raw IPs, so resolve hostnames first
 
 # Resolve host.docker.internal for QGC
-HOST_IP=$(getent hosts host.docker.internal | awk '{print $1}' || echo "")
+# HOST_IP=$(getent hosts host.docker.internal | awk '{print $1}' || echo "")
+#tries to find the IP add of host.docker.internal (the host machine inside docker)
+#used so a container can talk back to a service running on the host, 
+#like forwarding traffic to a ROS master, a display server, or a Gazebo instance running outside the container.
+HOST_IP=$(getent ahostsv4 host.docker.internal 2>/dev/null | awk 'NR==1 {print $1}' || echo "")
 if [ -z "${HOST_IP}" ]; then
     # Fallback: get the default gateway IP (Docker host)
-    HOST_IP=$(ip route | grep default | awk '{print $3}' || echo "")
+    # HOST_IP=$(ip route | grep default | awk '{print $3}' || echo "")
+    HOST_IP=$(ip -4 route show default 2>/dev/null | awk 'NR==1 {print $3}' || echo "")
 fi
 if [ -n "${HOST_IP}" ]; then
     sed -i "s/host.docker.internal/${HOST_IP}/" /home/ardupilot/mavlink-router.conf
-    echo "Host (QGC) resolved to: ${HOST_IP}"
+    # echo "Host (QGC) resolved to: ${HOST_IP}"
+    echo "Host (QGC) resolved to IPv4: ${HOST_IP}"
 else
-    echo "WARNING: Could not resolve host IP for QGC."
+    # echo "WARNING: Could not resolve host IP for QGC."
+    echo "WARNING: Could not resolve host IPv4 for QGC."
     sed -i '/\[UdpEndpoint qgc\]/,/^$/d' /home/ardupilot/mavlink-router.conf
 fi
 
