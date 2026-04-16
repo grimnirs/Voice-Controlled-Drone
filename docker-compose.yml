@@ -23,6 +23,14 @@ services:
       - sim
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
+      - USE_RAW_FLOW=1
+      - TARGET_DISTANCE_M=10.0
+      - DISTANCE_SCALE_A=1.05
+      - DISTANCE_BIAS_B=0.20
+      - BRAKE_ACCEL_M_S2=1.2
+      - SAFETY_MARGIN_M=0.25
+      - SLOW_ZONE_RATIO=0.30
+      - SLOW_SPEED_M_S=0.8
     volumes:
       - ./logic-engine:/app    #
     tty: true

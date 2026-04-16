@@ -3,11 +3,14 @@
 GPS-denied drone simulation environment.
 
 ## QGroundControl setup
-Press the Q in the upper left corner
--> Application settings
--> Comm links
--> Press 'add' under Links
--> Type:TCP   Server Address:127.0.0.1  Port:5760
+Use UDP to connect to the simulator:
+
+- Q (top left) -> Application Settings -> Comm Links
+- Add
+- Type: `UDP`
+- Listening Port: `14550`
+
+Note: `TCP 5760` is internal between SITL and `mavlink-router` inside the container.
 
 ## Quick Start
 
@@ -76,3 +79,34 @@ docker compose down
 # Clean up all images (reclaim disk space)
 docker system prune -a
 ```
+
+## Optical Flow Quick Test (QGroundControl)
+
+`sim/entrypoint.sh` starts SITL with simulated optical flow + rangefinder:
+
+- `SIM_FLOW_ENABLE=1`
+- `FLOW_TYPE=10` (SITL optical flow)
+- `RNGFND1_*` enabled
+- `EK3_SRC1_VELXY=5` and `EK3_SRC1_POSXY=0` (optical-flow based XY estimate)
+- `SR0_EXTRA1=10` (higher telemetry stream rate for easier inspection in QGC)
+
+To verify in QGroundControl:
+
+1. Start sim: `docker compose up --build`
+2. Connect QGC to UDP `14550`
+3. Open MAVLink Inspector
+4. Confirm `OPTICAL_FLOW` is updating
+5. Arm and move/tilt the drone in flight, then verify `OPTICAL_FLOW` values change over time
+
+If `OPTICAL_FLOW` does not appear directly:
+
+1. Open Analyze Tools -> MAVLink Inspector
+2. Search for `OPTICAL_FLOW` and `OPTICAL_FLOW_RAD`
+3. Let SITL run 10-20 seconds and check again
+
+Important architecture note:
+
+- `models/downward_camera/model.sdf` is currently a standalone Gazebo camera model.
+- It is **not** attached to the `gazebo-iris` drone used by SITL in this setup.
+- The optical flow you see in QGC right now comes from SITL's built-in optical flow simulation (this is a good first step and usually the easiest way to validate the pipeline).
+- Next step (after this works): attach a real camera + optical-flow plugin directly in the drone model used by Gazebo/PX4 or switch to a full PX4 Gazebo model pipeline.
