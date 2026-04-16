@@ -7,7 +7,7 @@ print("camera_sensor started")
 position_x = 0.0
 position_y = 0.0
 last_time = None
-current_yaw = 0.0  # radians, updated from ATTITUDE messages
+current_yaw = 0.0  # radians
 
 #översätter body-fixed velocities till world-fixed
 #dvs fram kan vara norr eller syd beroende på hur kroppen är riktad
@@ -28,8 +28,8 @@ def on_optical_flow(msg, yaw_rad):
         return
 
     dt = now - last_time #skillnaden sen vi mätte tiden senast
-    last_time = now  
-
+    global last_time 
+    last_time = now
     quality = getattr(msg, "quality", 0)
     if quality < 50:
         print(f" Low quality ({quality}), skipping")
