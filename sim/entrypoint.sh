@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-
 # ── Configuration ────────────────────────────────────────────
 WORLD=${GZ_WORLD:-iris_runway.sdf}
 ARDUPILOT_HOME=/home/ardupilot/ardupilot
@@ -32,15 +31,26 @@ if [ -d "/home/ardupilot/custom_models" ]; then
     export GZ_SIM_RESOURCE_PATH="/home/ardupilot/custom_models:${GZ_SIM_RESOURCE_PATH}"
 fi
 
+export HEADLESS=1
 export GALLIUM_DRIVER=llvmpipe
 export IGN_GAZEBO_RENDER_ENGINE_GUIDE=ogre2
+#export GZ_SIM_RENDER_ENGINE=ogre2
+unset DISPLAY
+#export LIBGL_ALWAYS_SOFTWARE=1
 
 # ── Start Gazebo server ──────────────────────────────────────
 echo "============================================"
 echo "  Starting Gazebo server with Virtual Framebuffer"
 echo "============================================"
 # Notice the --server-num=99 to match our export above
-gz sim -s -r "${WORLD_PATH}" -v 2 &
+# gz sim -s -r "${WORLD_PATH}" -v 2 --headless-rendering &
+
+xvfb-run --auto-servernum --server-num=99 \
+  --server-args="-screen 0 1024x768x24" \
+  gz sim -s -r "${WORLD_PATH}" -v 2 &
+
+#gz sim -s -r "${WORLD_PATH}" -v 2 --headless-rendering &
+
 GZ_PID=$!
 
 # Wait for Gazebo to initialize
@@ -68,7 +78,6 @@ python3 Tools/autotest/sim_vehicle.py \
     --model JSON \
     --no-rebuild \
     --no-mavproxy \
-    --noterm \
     -I0 \
     --sim-address=127.0.0.1 \
     --param SIM_GZ_EN=1 \
@@ -82,17 +91,29 @@ python3 Tools/autotest/sim_vehicle.py \
     --param RNGFND1_MAX_CM=3000 \
     --param PRX1_TYPE=4 \
     --param PRX1_MAX=20 &
+# python3 Tools/autotest/sim_vehicle.py \
+#     -v ArduCopter \
+#     -f gazebo-iris \
+#     --model JSON \
+#     -N \
+#     --no-mavproxy \
+#     -I0 \
+#     --param EK3_SRC1_POSXY=6 \
+#     --param EK3_SRC1_VELXY=6 \
+#     --param EK3_SRC1_POSZ=1 \
+#     --param VISO_TYPE=1 \
+#     --param RNGFND1_TYPE=10 \
+#     --param RNGFND1_MIN_CM=10 \
+#     --param RNGFND1_MAX_CM=3000 \
+#     --param PRX1_TYPE=4 \
+#     --param PRX1_MAX=20 &
 SITL_PID=$!
 
 echo "SITL starting (PID: ${SITL_PID})"
 
 # Wait for SITL to open its TCP port
-# echo "Waiting for SITL TCP port..."
-# sleep 15
-until nc -z 127.0.0.1 5760; do
-  echo "Waiting for SITL..."
-  sleep 5
-done
+echo "Waiting for SITL TCP port..."
+sleep 15
 
 # ── Start MAVLink Router ────────────────────────────────────
 # mavlink-router only accepts raw IPs, so resolve hostnames first
