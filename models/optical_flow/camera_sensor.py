@@ -1,21 +1,27 @@
 from pymavlink import mavutil
-import asyncio
+import time
 
-
-
-
-print("nu är vi inne i camera_sensor")
+print("camera_sensor started")
 print("Connecting to MAVLink...")
 
 while True:
     try:
         master = mavutil.mavlink_connection("udpin:0.0.0.0:14551")
+
+        print("Waiting for heartbeat...")
         master.wait_heartbeat(timeout=10)
-        msg = master.recv_match(blocking=True)
-        print(msg)
         print("✅ Connected to MAVLink")
-        print(master)
-        break
+
+        while True:
+            msg = master.recv_match(type=["OPTICAL_FLOW", "OPTICAL_FLOW_RAD"], blocking=True)
+
+            if not msg:
+                continue
+
+            flow_x = getattr(msg, "flow_x", None)
+            flow_y = getattr(msg, "flow_y", None)
+            print(f"OPTICAL FLOW → X: {flow_x}, Y: {flow_y}")
+
     except Exception as e:
-        print("Waiting for MAVLink...", e)
-        asyncio.sleep(1)
+        print("❌ Connection lost, retrying...", e)
+        time.sleep(2)

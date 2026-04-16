@@ -108,6 +108,7 @@ async def run():
         # await txt_to_cmd(drone, "land")
             
     # Print flight mode changes
+    #asyncio.create_task(optical_flow_watcher())
     asyncio.ensure_future(print_flight_mode(drone))
     asyncio.ensure_future(cmd_handler(drone))
     #await cmd_handler(drone)
@@ -121,6 +122,32 @@ async def run():
             f"Alt: {position.relative_altitude_m:6.2f} m",
             end="\r",
         )
+# async def optical_flow_watcher():
+#     print("Starting optical flow listener...")
+
+#     master = mavutil.mavlink_connection("udpin:0.0.0.0:14552")
+
+#     # Non-blocking heartbeat wait
+#     while True:
+#         msg = master.recv_match(type="HEARTBEAT", blocking=False)
+#         if msg:
+#             print("Optical flow connected!")
+#             break
+#         await asyncio.sleep(0.1)
+
+#     while True:
+#         msg = master.recv_match(
+#             type=["OPTICAL_FLOW", "OPTICAL_FLOW_RAD"],
+#             blocking=False
+#         )
+
+#         if msg:
+#             flow_x = getattr(msg, "flow_x", None)
+#             flow_y = getattr(msg, "flow_y", None)
+
+#             print(f"\nOPTICAL FLOW → X: {flow_x}, Y: {flow_y}")
+
+#         await asyncio.sleep(0.01)
 
 
 async def print_flight_mode(drone):
