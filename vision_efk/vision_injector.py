@@ -5,7 +5,7 @@ from mavsdk.mocap import VisionPositionEstimate, Quaternion, PositionBody, Angle
 
 async def run():
     drone = System()
-    # Vi använder tcpout mot sim:5760 för att matcha din docker-compose
+    # Vi använder tcpout mot sim:5790 för att matcha din docker-compose
     address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")
     print(f"Vision Injector: Försöker ansluta till {address}...")
 

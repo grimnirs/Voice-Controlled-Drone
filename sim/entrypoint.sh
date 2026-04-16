@@ -65,6 +65,10 @@ python3 Tools/autotest/sim_vehicle.py \
     -N \
     --no-mavproxy \
     -I0 \
+    --sim-address=127.0.0.1 \
+    --param SIM_GZ_EN=1 \
+    --param SIM_GZ_PORT_IN=9002 \
+    --param SIM_GZ_PORT_OUT=9003 \
     --param EK3_SRC1_POSXY=6 \
     --param EK3_SRC1_VELXY=6 \
     --param EK3_SRC1_POSZ=1 \

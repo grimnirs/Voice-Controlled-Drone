@@ -3,7 +3,7 @@
   <world name="warehouse_world">
     <physics name="default" type="ignored">
       <max_step_size>0.001</max_step_size>
-      <real_time_update_rate>1000</real_time_update_rate>
+      <real_time_update_rate>400</real_time_update_rate>
     </physics>
 
 <!-- ===================================================== -->
@@ -395,42 +395,8 @@
     
   <!--Including drone in world -->
   <include>
-      <uri>model://iris_demo</uri> 
-      <modelName>iris_demo</modelName>
-      <pose>-12 -10 0.2 0 0 0</pose> 
-
-      <plugin name="ArduPilotPlugin" filename="libArduPilotPlugin.so">
-        <fdm_addr>127.0.0.1</fdm_addr>
-        <fdm_port_in>9002</fdm_port_in>
-        <fdm_port_out>9003</fdm_port_out>
-        <modelName>iris_demo</modelName>
-        <lockstep>1</lockstep>
-        <channel index="0">
-          <input_index>0</input_index>
-          <type>COMMAND</type>
-          <cmd_topic>/model/iris_demo/joint/rotor_0_joint/cmd_force</cmd_topic>
-          <multiplier>838</multiplier>
-        </channel>
-        <channel index="1">
-          <input_index>1</input_index>
-          <type>COMMAND</type>
-          <cmd_topic>/model/iris_demo/joint/rotor_1_joint/cmd_force</cmd_topic>
-          <multiplier>838</multiplier>
-        </channel>
-        <channel index="2">
-          <input_index>2</input_index>
-          <type>COMMAND</type>
-          <cmd_topic>/model/iris_demo/joint/rotor_2_joint/cmd_force</cmd_topic>
-          <multiplier>838</multiplier>
-        </channel>
-        <channel index="3">
-          <input_index>3</input_index>
-          <type>COMMAND</type>
-          <cmd_topic>/model/iris_demo/joint/rotor_3_joint/cmd_force</cmd_topic>
-          <multiplier>838</multiplier>
-        </channel>
-      </plugin>
-      </include>
-
+    <uri>model://iris_demo</uri> 
+    <pose>-12 -10 0.2 0 0 0</pose> 
+  </include>
   </world>
 </sdf>

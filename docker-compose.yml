@@ -8,17 +8,25 @@ services:
       - "5790:5790"        # expose so you can debug from host if needed
     environment:
       - GZ_WORLD=world.sdf
+      - GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/custom_models
     volumes:
       - ./worlds:/home/ardupilot/custom_worlds:ro
       - ./models:/home/ardupilot/custom_models:ro
     tty: true
     stdin_open: true
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 5790"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
 
   vision-injector:
     build: ./vision_efk
     container_name: vision-injector
     depends_on:
-      - sim
+      sim:
+        condition: service_healthy
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     restart: unless-stopped
@@ -29,11 +37,13 @@ services:
     build: ./logic-engine
     container_name: logic-engine
     depends_on:
-      - sim
+      sim:
+        condition: service_healthy
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
       - ./logic-engine:/app
+    restart: unless-stopped
     tty: true
 
 # services:

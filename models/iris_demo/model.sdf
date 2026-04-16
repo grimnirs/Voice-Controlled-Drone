@@ -5,16 +5,37 @@
       <uri>model://iris_with_standoffs</uri>
     </include>
     
-    <plugin name="ArduPilotPlugin" filename="ArduPilotPlugin">
+    <plugin name="ArduPilotPlugin" filename="libArduPilotPlugin.so">
       <imuName>iris_with_standoffs::imu_link::imu_sensor</imuName>
-      <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
+      <connectionTimeoutMaxCount>50</connectionTimeoutMaxCount>
+      <fdm_addr>127.0.0.1</fdm_addr>
+      <fdm_port_in>9002</fdm_port_in>
+      <fdm_port_out>9003</fdm_port_out>
+      
+      <motorSpeed>
+        <joint>iris_with_standoffs::rotor_0_joint</joint>
+        <multiplier>838</multiplier>
+      </motorSpeed>
+      <motorSpeed>
+        <joint>iris_with_standoffs::rotor_1_joint</joint>
+        <multiplier>838</multiplier>
+      </motorSpeed>
+      <motorSpeed>
+        <joint>iris_with_standoffs::rotor_2_joint</joint>
+        <multiplier>838</multiplier>
+      </motorSpeed>
+      <motorSpeed>
+        <joint>iris_with_standoffs::rotor_3_joint</joint>
+        <multiplier>838</multiplier>
+      </motorSpeed>
+
       <rangefinder>
         <sensorName>lidar_down</sensorName>
       </rangefinder>
       <proximity>
         <sensorName>lidar_forward</sensorName>
       </proximity>
-    </plugin> 
+    </plugin>
 
     <link name="lidar_forward_link">
       <pose>0.15 0 0.05 0 0 0</pose> <sensor name="lidar_forward" type="ray">
