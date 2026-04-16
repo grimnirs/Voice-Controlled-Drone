@@ -66,6 +66,7 @@ python3 Tools/autotest/sim_vehicle.py \
     --no-mavproxy \
     -I0 \
     --param SIM_FLOW_ENABLE=1 \
+    --param FLOW_ENABLE = 1 \
     --param FLOW_TYPE=10 \
     --param RNGFND1_TYPE=1 \
     --param RNGFND1_PIN=0 \

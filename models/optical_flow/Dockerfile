@@ -6,5 +6,6 @@ WORKDIR /app/models/optical_flow/
 
 COPY camera_sensor.py .
 
+EXPOSE 14551
 
 CMD ["python", "camera_sensor.py"]
