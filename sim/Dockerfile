@@ -21,6 +21,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl \
     python3 python3-pip python3-dev python3-venv python3-setuptools \
     meson ninja-build \
+    xvfb \
+    libgl1-mesa-dri \
+    libglapi-mesa \
+    libosmesa6 \
+    mesa-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # ── 2. Gazebo Harmonic from OSRF repository ─────────────────
@@ -54,6 +59,7 @@ RUN USER=root Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Make sure pip-installed tools are on PATH
 ENV PATH="/home/ardupilot/.local/bin:${PATH}"
+
 
 # ── 6. Build ArduCopter for SITL ────────────────────────────
 RUN modules/waf/waf-light configure --board sitl && \

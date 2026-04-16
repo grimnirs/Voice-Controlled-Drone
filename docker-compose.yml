@@ -14,31 +14,30 @@ services:
       - ./models:/home/ardupilot/custom_models:ro
     tty: true
     stdin_open: true
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z 127.0.0.1 5790"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 90s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "nc -z 127.0.0.1 5790"]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 20
+    #   start_period: 90s
 
-  vision-injector:
-    build: ./vision_efk
-    container_name: vision-injector
-    depends_on:
-      sim:
-        condition: service_healthy
-    environment:
-      - SITL_ADDRESS=tcpout://sim:5790
-    restart: unless-stopped
-    tty: true
+  # vision-injector:
+  #   build: ./vision_efk
+  #   container_name: vision-injector
+  #   depends_on:
+  #     sim:
+  #       condition: service_healthy
+  #   environment:
+  #     - SITL_ADDRESS=tcpout://sim:5790
+  #   restart: unless-stopped
+  #   tty: true
 
   logic-engine:
     image: ghcr.io/grimnirs/logic-engine:v0.2
     build: ./logic-engine
     container_name: logic-engine
     depends_on:
-      sim:
-        condition: service_healthy
+      - sim
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
@@ -71,18 +70,18 @@ services:
 #       retries: 20
 #       start_period: 90s
     
-
 # -- Vision Injector ---------------------------------
-  # vision-injector:
-  #   build: ./vision_efk
-  #   container_name: vision-injector
-  #   depends_on:
-  #     sim:
-  #       condition: service_healthy
-  #   environment:
-  #     - SITL_ADDRESS=tcp://sim:5790
-  #   tty: true
-  #   restart: unless-stopped
+  vision-injector:
+    build: ./vision_efk
+    container_name: vision-injector
+    ports:
+      - "14551:14551/udp"
+    depends_on:
+      - sim
+    environment:
+      - SITL_ADDRESS=udpin://0.0.0.0:14551
+    tty: true
+    restart: unless-stopped
   
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   # logic-engine:
