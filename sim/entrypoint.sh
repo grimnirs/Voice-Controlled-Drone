@@ -31,26 +31,11 @@ if [ -d "/home/ardupilot/custom_models" ]; then
     export GZ_SIM_RESOURCE_PATH="/home/ardupilot/custom_models:${GZ_SIM_RESOURCE_PATH}"
 fi
 
-# ── Start Gazebo server (headless) ───────────────────────────
-echo "============================================"
-echo "  Starting Gazebo server (headless)"
-echo "  World: ${WORLD_PATH}"
-echo "============================================"
-gz sim -s -r "${WORLD_PATH}" -v 2 &
-GZ_PID=$!
-
-# Wait for Gazebo to initialize
-echo "Waiting for Gazebo to initialize..."
-sleep 10
-
-# Verify Gazebo is running
-if ! kill -0 $GZ_PID 2>/dev/null; then
-    echo "ERROR: Gazebo failed to start."
-    exit 1
-fi
-echo "Gazebo server running (PID: ${GZ_PID})"
-
-# ── Start ArduPilot SITL ────────────────────────────────────
+# ── Start ArduPilot SITL FIRST ──────────────────────────────
+# Starting SITL before Gazebo avoids a race where Gazebo's
+# ArduPilotPlugin opens UDP 9002/9003 and immediately times out
+# because SITL isn't yet running, producing endless
+# "Broken ArduPilot connection, resetting motor control" warnings.
 echo "============================================"
 echo "  Starting ArduPilot SITL"
 echo "============================================"
@@ -58,6 +43,8 @@ cd "${ARDUPILOT_HOME}"
 
 # SITL runs with --no-mavproxy, exposing TCP 5760 internally.
 # mavlink-router will connect to this and fan out to QGC + Logic Engine.
+# NOTE: do not put inline `#` comments after a trailing `\` — bash treats
+# the comment as a separate command and silently drops the rest of the args.
 python3 Tools/autotest/sim_vehicle.py \
     -v ArduCopter \
     -f gazebo-iris \
@@ -67,15 +54,48 @@ python3 Tools/autotest/sim_vehicle.py \
     -I0 \
     --param EK3_SRC1_POSXY=6 \
     --param EK3_SRC1_VELXY=6 \
-    --param EK3_SRC1_POSZ=6 \
-    --param VISO_TYPE=1 &
+    --param EK3_SRC1_POSZ=1 \
+    --param VISO_TYPE=1 \
+    --param RNGFND1_TYPE=10 \
+    --param RNGFND1_MIN_CM=10 \
+    --param RNGFND1_MAX_CM=3000 \
+    --param PRX1_TYPE=4 \
+    --param PRX1_MAX=20 &
 SITL_PID=$!
 
 echo "SITL starting (PID: ${SITL_PID})"
 
-# Wait for SITL to open its TCP port
-echo "Waiting for SITL TCP port..."
-sleep 5
+# Wait for SITL's MAVLink TCP port (5760) to be ready before Gazebo.
+# Retry loop avoids racing Gazebo against a half-booted SITL.
+echo "Waiting for SITL TCP port 5760..."
+for i in $(seq 1 60); do
+    if bash -c '</dev/tcp/127.0.0.1/5760' 2>/dev/null; then
+        echo "SITL TCP 5760 is up (after ${i}s)."
+        break
+    fi
+    if ! kill -0 $SITL_PID 2>/dev/null; then
+        echo "ERROR: SITL exited before binding TCP 5760."
+        exit 1
+    fi
+    sleep 1
+done
+
+# ── Start Gazebo server (headless) ───────────────────────────
+echo "============================================"
+echo "  Starting Gazebo server (headless)"
+echo "  World: ${WORLD_PATH}"
+echo "============================================"
+gz sim -s -r "${WORLD_PATH}" -v 2 &
+GZ_PID=$!
+
+echo "Waiting for Gazebo to initialize..."
+sleep 10
+
+if ! kill -0 $GZ_PID 2>/dev/null; then
+    echo "ERROR: Gazebo failed to start."
+    exit 1
+fi
+echo "Gazebo server running (PID: ${GZ_PID})"
 
 # ── Start MAVLink Router ────────────────────────────────────
 # mavlink-router only accepts raw IPs, so resolve hostnames first

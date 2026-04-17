@@ -1,41 +1,52 @@
 services:
   # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
-  sim:
-    image: ghcr.io/grimnirs/sim:v0.3    # Ladda ner den färdiga miljön
-    build: ./sim                     
+  sim: 
+    build: ./sim
     container_name: sim
     ports:
-      - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
+      - "14550:14550/udp" # MAVLink UDP — QGC auto-connects here
+      - "5790:5790"   
     environment:
-      - GZ_WORLD=iris_runway.sdf   # Change to load a different world
+      - GZ_WORLD=world.sdf   # Change to load a different world
+      #- GZ_SIM_RESOURCE_PATH=/home/ardupilot/custom_models
+      - GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/custom_models
     volumes:
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
       - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
     tty: true
     stdin_open: true
 
-# -- Vision Injector ---------------------------------#
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1s bash -c '</dev/tcp/127.0.0.1/5790' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    
+
+# -- Vision Injector ---------------------------------
   vision-injector:
     build: ./vision_efk
     container_name: vision-injector
     depends_on:
       - sim
     environment:
-      - SITL_ADDRESS=tcp:sim:5790
+      - SITL_ADDRESS=tcpout://sim:5790
     tty: true
     restart: unless-stopped
-    command: python vision_injector.py # ??
-
+    #command: python vision_injector.py # ??
+  
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
-    image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
-    build: ./logic-engine                   
+    build: ./logic-engine
     container_name: logic-engine
     depends_on:
-      - sim
-      - vision-injector
+      sim:
+        condition: service_healthy
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
       - ./logic-engine:/app    
     tty: true
+
+    
