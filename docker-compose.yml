@@ -1,7 +1,6 @@
 services:
   # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
-  sim:
-    image: ghcr.io/grimnirs/sim:v0.3    # Ladda ner den färdiga miljön
+  sim:    
     build:
       context: .
       dockerfile: sim/Dockerfile                     
@@ -21,7 +20,7 @@ services:
 
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
-    image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
+    # image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
     build: ./logic-engine                   
     container_name: logic-engine
     depends_on:
@@ -29,16 +28,32 @@ services:
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
-      - ./logic-engine:/app    #
+      - ./logic-engine:/app    
     tty: true
 
   vision-injector:
     build: 
-      context: .
-      dockerfile: vision-injector/Dockerfile # Ensure this points to your Dockerfile path
+      context: ./vision_efk
+      dockerfile: Dockerfile # Ensure this points to your Dockerfile path
     container_name: vision-injector
     depends_on:
       - sim
     environment:
       - SITL_ADDRESS=udpin://0.0.0.0:14552 #ska det inte vara udpout
+    volumes:
+      - ./vision_efk:/app
     restart: always
+  
+  camera-sensor:
+    build: ./models/optical_flow
+    container_name: camera_sensor
+    ports:
+    - "14551:14551/udp"   #MAVLink UDP - Optical flow
+    depends_on:
+     - sim
+    command: sh -c "sleep 10 && python camera_sensor.py"
+    tty: true
+    environment:
+      - ARDUPILOT_CUSTOM_PARAMS=--nosync --param SIM_FLOW_ENABLE=1 --param FLOW_TYPE=10 --param RNGFND1_TYPE=10 --param RNGFND1_MIN_CM=20 --param RNGFND1_MAX_CM=700 --param EK3_SRC1_POSXY=0 --param EK3_SRC1_VELXY=5 --param EK3_SRC1_POSZ=1 --param EK3_SRC1_VELZ=0 --param EK3_SRC1_YAW=1 --param EK3_SRC_OPTIONS=0 --param SR0_EXTRA1=10
+      - SITL_ADDRESS=udpin:0.0.0.0:14551
+    restart: unless-stopped
