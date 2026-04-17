@@ -66,13 +66,13 @@ RUN modules/waf/waf-light configure --board sitl && \
     modules/waf/waf-light build --target bin/arducopter
 
 # ── 7. Clone and build ardupilot_gazebo plugin ──────────────
-RUN git clone --depth 1 \
-    https://github.com/ArduPilot/ardupilot_gazebo.git \
-    /home/ardupilot/ardupilot_gazebo
+# RUN git clone --depth 1 \
+#     https://github.com/ArduPilot/ardupilot_gazebo.git \
+#     /home/ardupilot/ardupilot_gazebo
 
-WORKDIR /home/ardupilot/ardupilot_gazebo
-ENV GZ_VERSION=harmonic
-RUN mkdir build && cd build && cmake .. && make -j$(nproc)
+# WORKDIR /home/ardupilot/ardupilot_gazebo
+# ENV GZ_VERSION=harmonic
+# RUN mkdir build && cd build && cmake .. && make -j$(nproc)
 
 # ── 8. Build mavlink-router ─────────────────────────────────
 # Routes MAVLink from SITL to multiple clients (QGC + Logic Engine)
@@ -89,8 +89,8 @@ ENV GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot
 
 # ── 10. Configuration and entrypoint ────────────────────────
 WORKDIR /home/ardupilot
-COPY --chown=ardupilot:ardupilot mavlink-router.conf /home/ardupilot/mavlink-router.conf
-COPY --chown=ardupilot:ardupilot entrypoint.sh /home/ardupilot/entrypoint.sh
+COPY --chown=ardupilot:ardupilot sim/mavlink-router.conf /home/ardupilot/mavlink-router.conf
+COPY --chown=ardupilot:ardupilot sim/entrypoint.sh /home/ardupilot/entrypoint.sh
 RUN chmod +x /home/ardupilot/entrypoint.sh
 
 EXPOSE 14550

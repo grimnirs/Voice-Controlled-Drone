@@ -31,26 +31,12 @@ if [ -d "/home/ardupilot/custom_models" ]; then
     export GZ_SIM_RESOURCE_PATH="/home/ardupilot/custom_models:${GZ_SIM_RESOURCE_PATH}"
 fi
 
-export HEADLESS=1
-export GALLIUM_DRIVER=llvmpipe
-export IGN_GAZEBO_RENDER_ENGINE_GUIDE=ogre2
-#export GZ_SIM_RENDER_ENGINE=ogre2
-unset DISPLAY
-#export LIBGL_ALWAYS_SOFTWARE=1
-
-# ── Start Gazebo server ──────────────────────────────────────
+# ── Start Gazebo server (headless) ───────────────────────────
 echo "============================================"
-echo "  Starting Gazebo server with Virtual Framebuffer"
+echo "  Starting Gazebo server (headless)"
+echo "  World: ${WORLD_PATH}"
 echo "============================================"
-# Notice the --server-num=99 to match our export above
-# gz sim -s -r "${WORLD_PATH}" -v 2 --headless-rendering &
-
-xvfb-run --auto-servernum --server-num=99 \
-  --server-args="-screen 0 1024x768x24" \
-  gz sim -s -r "${WORLD_PATH}" -v 2 &
-
-#gz sim -s -r "${WORLD_PATH}" -v 2 --headless-rendering &
-
+gz sim -s -r "${WORLD_PATH}" -v 2 &
 GZ_PID=$!
 
 # Wait for Gazebo to initialize
@@ -72,48 +58,21 @@ cd "${ARDUPILOT_HOME}"
 
 # SITL runs with --no-mavproxy, exposing TCP 5760 internally.
 # mavlink-router will connect to this and fan out to QGC + Logic Engine.
-python3 Tools/autotest/sim_vehicle.py \
-    -v ArduCopter \
-    -f gazebo-iris \
+./build/sitl/bin/arducopter \
     --model JSON \
-    --no-rebuild \
-    --no-mavproxy \
-    -I0 \
+    --home 59.840406,17.64578,20,0 \
+    --speedup 1 \
+    --instance 0 \
     --sim-address=127.0.0.1 \
-    --param SIM_GZ_EN=1 \
-    --param EK3_SRC1_POSXY=0 \
-    --param EK3_SRC1_VELXY=6 \
-    --param EK3_SRC1_POSZ=1 \
-    --param AHRS_EKF_TYPE=3 \
-    --param VISO_TYPE=1 \
-    --param RNGFND1_TYPE=10 \
-    --param RNGFND1_MIN_CM=10 \
-    --param RNGFND1_MAX_CM=3000 \
-    --param PRX1_TYPE=4 \
-    --param PRX1_MAX=20 &
-# python3 Tools/autotest/sim_vehicle.py \
-#     -v ArduCopter \
-#     -f gazebo-iris \
-#     --model JSON \
-#     -N \
-#     --no-mavproxy \
-#     -I0 \
-#     --param EK3_SRC1_POSXY=6 \
-#     --param EK3_SRC1_VELXY=6 \
-#     --param EK3_SRC1_POSZ=1 \
-#     --param VISO_TYPE=1 \
-#     --param RNGFND1_TYPE=10 \
-#     --param RNGFND1_MIN_CM=10 \
-#     --param RNGFND1_MAX_CM=3000 \
-#     --param PRX1_TYPE=4 \
-#     --param PRX1_MAX=20 &
+    --defaults Tools/autotest/default_params/copter.parm,Tools/autotest/default_params/gazebo-iris.parm &
+
 SITL_PID=$!
 
 echo "SITL starting (PID: ${SITL_PID})"
 
 # Wait for SITL to open its TCP port
 echo "Waiting for SITL TCP port..."
-sleep 15
+sleep 5
 
 # ── Start MAVLink Router ────────────────────────────────────
 # mavlink-router only accepts raw IPs, so resolve hostnames first
@@ -130,6 +89,17 @@ if [ -n "${HOST_IP}" ]; then
 else
     echo "WARNING: Could not resolve host IP for QGC."
     sed -i '/\[UdpEndpoint qgc\]/,/^$/d' /home/ardupilot/mavlink-router.conf
+fi
+
+echo "Starting network resolution..."
+VISION_IP=$(getent hosts vision-injector | awk '{print $1}')
+
+if [ -n "${VISION_IP}" ]; then
+    echo "Vision Injector found at: ${VISION_IP}"
+    sed -i "s/vision_injector_placeholder/${VISION_IP}/g" /home/ardupilot/mavlink-router.conf
+else
+    echo "WARNING: vision-injector not found. Using 0.0.0.0"
+    sed -i "s/vision_injector_placeholder/0.0.0.0/g" /home/ardupilot/mavlink-router.conf
 fi
 
 echo "============================================"
