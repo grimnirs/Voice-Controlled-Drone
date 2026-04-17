@@ -28,7 +28,6 @@ def on_optical_flow(msg, yaw_rad):
         return
 
     dt = now - last_time #skillnaden sen vi mätte tiden senast
-    global last_time 
     last_time = now
     quality = getattr(msg, "quality", 0)
     if quality < 50:
