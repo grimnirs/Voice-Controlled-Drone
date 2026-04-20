@@ -1,8 +1,9 @@
-import shared_variables 
+from shared_variables import avoid_collision
 from mavsdk.offboard import VelocityBodyYawspeed
 import math
 from typing import TypedDict, Optional
 import asyncio
+import collision_handler
  
 # TODO
 
@@ -120,11 +121,11 @@ async def cmd_fly(drone, command:DroneCommand):
     #     start_pos = await anext(drone.telemetry.posititon())
 
     # DEBUG PRINT
-    print(f"DEBUG: checking odom... Current value: {shared_variables.latest_odom}")
+    print(f"DEBUG: checking odom... Current value: {shared_variables.latest_distance}")
 
     # Om den är None, vänta, men printa varje sekund så vi ser om den ändras
     timeout_counter = 0
-    while shared_variables.latest_odom is None:
+    while shared_variables.latest_distance is None:
         if timeout_counter % 10 == 0: # Varje sekund
             print("Still waiting for odom data from shared_variables...")
         await asyncio.sleep(0.1)
@@ -133,9 +134,9 @@ async def cmd_fly(drone, command:DroneCommand):
             print("TIMEOUT: Never received odom. Check if odometry_watcher is running!")
             return
 
-    while shared_variables.latest_odom is None:
+    while shared_variables.latest_distance is None:
         await asyncio.sleep(0.1)
-    start_pos = shared_variables.latest_odom
+    start_pos = shared_variables.latest_distance
 
     start_y = start_pos.position_body.y_m
     start_z = start_pos.position_body.z_m
@@ -158,13 +159,13 @@ async def cmd_fly(drone, command:DroneCommand):
             print(f"Distance travelled: {distance_traveled}") # fel-sök bara
             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, right, down, 0.0))
 
-            if shared_variables.latest_odom is None:
+            if shared_variables.latest_distance is None:
                 print("No odometry yet!")
                 await asyncio.sleep(0.05)
                 continue
 
             #current_pos = await anext(drone_odometry)
-            current_pos = shared_variables.latest_odom
+            current_pos = shared_variables.latest_distance
             current_x = current_pos.position_body.x_m
             current_y = current_pos.position_body.y_m
             current_z = current_pos.position_body.z_m
@@ -186,6 +187,9 @@ async def cmd_fly(drone, command:DroneCommand):
         print("Reached end of cmd_fly code!")  
 
 async def cmd_rotate(drone, command: DroneCommand):
+    if avoid_collision:
+        return # what should happen when stopping?
+    
     rotation = command.get("direction")
     
     if rotation is None:

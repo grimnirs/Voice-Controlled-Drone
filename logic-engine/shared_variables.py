@@ -5,4 +5,5 @@
 #from mavsdk.offboard import VelocityBodyYawspeed
 # from typing import TypedDict, Optional
 
-latest_odom = None
+latest_distance = None
+avoid_collision = False 

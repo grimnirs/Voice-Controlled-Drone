@@ -16,21 +16,7 @@ import os
 import asyncio
 from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand
-
-
-latest_distance = 100.0 # Global variabel
-
-# async def watch_distance(drone):
-#     global latest_distance
-#     print("Startar avståndssensor...")
-#     try:
-#         async for distance in drone.telemetry.distance_sensor():
-#             # MAVSDK använder .current_distance_m
-#             latest_distance = distance.current_distance_m
-#             if latest_distance < 2.0:
-#                 print(f"SENSORDATA: Hinder på {latest_distance:.2f}m")
-#     except Exception as e:
-#         print(f"Sensor-error: {e}")
+from collision_handler import watch_distance
 
 async def run():
     address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")
@@ -61,11 +47,7 @@ async def run():
     
     await wait_until_ready(drone)
 
-    async def odometry_watcher(drone):
-        async for odom in drone.telemetry.odometry():
-            shared_variables.latest_odom = odom
-    
-    asyncio.create_task(odometry_watcher(drone))
+    asyncio.create_task(watch_distance(drone))
 
     arm_cmd: DroneCommand = {
         "action": "arm"
@@ -83,7 +65,6 @@ async def run():
     }  
     
     async def cmd_handler(drone):
-        # asyncio.create_task(watch_distance(drone))
         # await asyncio.sleep(40)
         print("Arming...")
         await txt_to_cmd(drone, arm_cmd)
