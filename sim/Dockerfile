@@ -74,6 +74,14 @@ RUN modules/waf/waf-light configure --board sitl && \
 # ENV GZ_VERSION=harmonic
 # RUN mkdir build && cd build && cmake .. && make -j$(nproc)
 
+COPY --chown=ardupilot:ardupilot ardupilot_gazebo /home/ardupilot/ardupilot_gazebo
+
+WORKDIR /home/ardupilot/ardupilot_gazebo
+ENV GZ_VERSION=harmonic
+
+# Create the build directory and compile the plugin
+RUN mkdir -p build && cd build && cmake .. && make -j$(nproc)
+
 # ── 8. Build mavlink-router ─────────────────────────────────
 # Routes MAVLink from SITL to multiple clients (QGC + Logic Engine)
 RUN git clone --depth 1 --recurse-submodules \
@@ -84,6 +92,9 @@ WORKDIR /home/ardupilot/mavlink-router
 RUN meson setup build . && ninja -C build && sudo ninja -C build install
 
 # ── 9. Environment variables for Gazebo ─────────────────────
+# ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build
+# ENV GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/ardupilot_gazebo/worlds
+
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/ardupilot_gazebo/worlds
 

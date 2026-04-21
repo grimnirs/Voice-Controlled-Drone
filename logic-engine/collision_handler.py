@@ -1,4 +1,4 @@
-from shared_variables import latest_dist, avoid_collision
+from shared_variables import latest_distance, avoid_collision
 
 async def watch_distance(drone):
     global latest_distance

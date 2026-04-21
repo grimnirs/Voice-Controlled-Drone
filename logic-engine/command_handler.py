@@ -1,4 +1,4 @@
-from shared_variables import avoid_collision
+import shared_variables
 from mavsdk.offboard import VelocityBodyYawspeed
 import math
 from typing import TypedDict, Optional
@@ -187,8 +187,8 @@ async def cmd_fly(drone, command:DroneCommand):
         print("Reached end of cmd_fly code!")  
 
 async def cmd_rotate(drone, command: DroneCommand):
-    if avoid_collision:
-        return # what should happen when stopping?
+    #if avoid_collision:
+        #return # what should happen when stopping?
     
     rotation = command.get("direction")
     
