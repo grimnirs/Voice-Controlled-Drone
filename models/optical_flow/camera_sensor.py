@@ -54,11 +54,11 @@ def on_optical_flow(msg, yaw_rad):
 while True:
     try:
         print("Connecting to MAVLink...")
-        # master = mavutil.mavlink_connection("udpin:0.0.0.0:14551")
+        # master = mavutil.mavlink_connection("udpin:0.0.0.0:14551")m
         addr = os.getenv('SITL_ADDRESS', 'udpin:0.0.0.0:14551')
         master = mavutil.mavlink_connection(addr)
 
-        print("Waiting for heartbeat...")
+        print("Waiting for heartbeat... (camera)")
         master.wait_heartbeat(timeout=10)
         print("✅ Connected")
 

@@ -31,6 +31,10 @@ if [ -d "/home/ardupilot/custom_models" ]; then
     export GZ_SIM_RESOURCE_PATH="/home/ardupilot/custom_models:${GZ_SIM_RESOURCE_PATH}"
 fi
 
+# solves plug-in problems:
+export GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build:${GZ_SIM_SYSTEM_PLUGIN_PATH}
+export GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/ardupilot_gazebo/worlds:${GZ_SIM_RESOURCE_PATH}
+
 # ── Start Gazebo server (headless) ───────────────────────────
 echo "============================================"
 echo "  Starting Gazebo server (headless)"
@@ -91,16 +95,6 @@ else
     sed -i '/\[UdpEndpoint qgc\]/,/^$/d' /home/ardupilot/mavlink-router.conf
 fi
 
-echo "Starting network resolution..."
-VISION_IP=$(getent hosts vision-injector | awk '{print $1}')
-
-if [ -n "${VISION_IP}" ]; then
-    echo "Vision Injector found at: ${VISION_IP}"
-    sed -i "s/vision_injector_placeholder/${VISION_IP}/g" /home/ardupilot/mavlink-router.conf
-else
-    echo "WARNING: vision-injector not found. Using 0.0.0.0"
-    sed -i "s/vision_injector_placeholder/0.0.0.0/g" /home/ardupilot/mavlink-router.conf
-fi
 
 echo "============================================"
 echo "  Starting MAVLink Router"

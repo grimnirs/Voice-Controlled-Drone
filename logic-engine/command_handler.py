@@ -3,7 +3,6 @@ from mavsdk.offboard import VelocityBodyYawspeed
 import math
 from typing import TypedDict, Optional
 import asyncio
-import collision_handler
  
 # TODO
 
@@ -76,6 +75,9 @@ async def cmd_takeoff(drone, command: DroneCommand):
     try:
         await drone.action.set_takeoff_altitude(3.0)
         await drone.action.takeoff()
+        # async for distance in drone.telemetry.distance_sensor():
+        #     if distance.current_distance_m > 2:
+        #         print("Takeoff altitdue reached!")
     except Exception as e:
         print(f"Takeoff failed: {e}")
         return
@@ -90,101 +92,108 @@ async def cmd_land(drone, command: DroneCommand):
             return
 
 async def cmd_fly(drone, command:DroneCommand):
-    print("-- Initializing movement sequence --")
-    direction_key = command.get("direction")
-    integer = float(command.get("integer")) 
-    unit = command.get("unit")
-
-    velocity = 3 # make a set_velocity func or have velocity as a parameter in the command handler
-    # time = integer / velocity
-
-    if direction_key is None or integer is None or unit is None:
-        print(f"Action requires direction, integer and unit!") 
-        return 
-    
-    if direction_key not in DIRECTIONS:
-        print("Direction not found")
-        return
-    
-    # drone_odometry = drone.telemetry.odometry()
-
-    # async for drone_odom in drone_odometry:
-    #     start_x = drone_odom.position_body.x_m
-    #     start_y = drone_odom.position_body.y_m
-    #     start_z = drone_odom.position_body.z_m
+   
+   
+   
+    # async for in_air in drone.telemetry.in_air():
+    #     if not in_air:
+    #         print("Action denied! Drone not in air!")
+    #         return
     #     break
 
-    # try:
-    #     start_pos = await anext(drone_odometry)
-    # except Exception as e:
-    #     print(f"Failed to get odometry!: {e}")
-    #     start_pos = await anext(drone.telemetry.posititon())
+    # print("-- Initializing movement sequence --")
+    # direction_key = command.get("direction")
+    # integer = float(command.get("integer")) 
+    # unit = command.get("unit")
 
-    # DEBUG PRINT
-    print(f"DEBUG: checking odom... Current value: {shared_variables.latest_distance}")
+    # velocity = 3 # make a set_velocity func or have velocity as a parameter in the command handler
+    # # time = integer / velocity
 
-    # Om den är None, vänta, men printa varje sekund så vi ser om den ändras
-    timeout_counter = 0
-    while shared_variables.latest_distance is None:
-        if timeout_counter % 10 == 0: # Varje sekund
-            print("Still waiting for odom data from shared_variables...")
-        await asyncio.sleep(0.1)
-        timeout_counter += 1
-        if timeout_counter > 50: # Efter 5 sekunder, ge upp
-            print("TIMEOUT: Never received odom. Check if odometry_watcher is running!")
-            return
-
-    while shared_variables.latest_distance is None:
-        await asyncio.sleep(0.1)
-    start_pos = shared_variables.latest_distance
-
-    start_y = start_pos.position_body.y_m
-    start_z = start_pos.position_body.z_m
-    start_x = start_pos.position_body.x_m
+    # if direction_key is None or integer is None or unit is None:
+    #     print(f"Action requires direction, integer and unit!") 
+    #     return 
     
-    direction_vector = DIRECTIONS.get(direction_key)
+    # if direction_key not in DIRECTIONS:
+    #     print("Direction not found")
+    #     return
 
-    fwd = direction_vector[0] * velocity
-    right = direction_vector[1] * velocity
-    down = direction_vector[2] * velocity
 
-    try: 
-        await drone.offboard.start()  
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
+    # start_pos = shared_variables.latest_distance
+
+    # start_y = start_pos.position_body.y_m
+    # start_z = start_pos.position_body.z_m
+    # start_x = start_pos.position_body.x_m
+    
+    # direction_vector = DIRECTIONS.get(direction_key)
+
+    # fwd = direction_vector[0] * velocity
+    # right = direction_vector[1] * velocity
+    # down = direction_vector[2] * velocity
+
+    try:  
+        print("--- STARTING SENSOR VALIDATION LOOP ---")
+        # We run this for a fixed time or until you hit Ctrl+C
+        for _ in range(100): 
+            fwd = shared_variables.latest_distance_forward
+            up = shared_variables.latest_distance_up
+            
+            # Formatting the output so it's easy to read
+            fwd_str = f"{fwd:.2f}m" if fwd is not None else "WAITING..."
+            up_str = f"{up:.2f}m" if up is not None else "WAITING..."
+            
+            print(f"DIAGNOSTIC: Forward: {fwd_str} | Up: {up_str}")
+            
+            if shared_variables.avoid_collision_forward:
+                print(">>> STATUS: Forward Obstacle Detected! (Range < 1.0m)")
+            if shared_variables.avoid_collision_up:
+                print(">>> STATUS: Ceiling Detected! (Range < 1.0m)")
+
+            await asyncio.sleep(0.5) # Check twice per second
+            
+        print("--- SENSOR VALIDATION COMPLETE ---")
+    
+    # try:    
+    #   while True:
+    #         print(f"Sensor data forward: {shared_variables.latest_distance_forward}m")
+    #         print(f"Sensor data up: {shared_variables.latest_distance_up}m")
+    #         await asyncio.sleep(1)
+        # await drone.offboard.start()  
+        # await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         # await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, right, down, 0.0))
 
-        distance_traveled = 0.0
+        # distance_traveled = 0.0
         # async for current_pos in drone_odometry:
-        while distance_traveled < integer:
-            print(f"Distance travelled: {distance_traveled}") # fel-sök bara
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, right, down, 0.0))
+        # while distance_traveled < integer:
+        #     print(f"Distance travelled: {distance_traveled}") # fel-sök bara
+        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, right, down, 0.0))
 
-            if shared_variables.latest_distance is None:
-                print("No odometry yet!")
-                await asyncio.sleep(0.05)
-                continue
+        #     if shared_variables.latest_distance is None:
+        #         print("No odometry yet!")
+        #         await asyncio.sleep(0.05)
+        #         continue
 
             #current_pos = await anext(drone_odometry)
-            current_pos = shared_variables.latest_distance
-            current_x = current_pos.position_body.x_m
-            current_y = current_pos.position_body.y_m
-            current_z = current_pos.position_body.z_m
-            distance_traveled = math.sqrt((current_x - start_x)**2 + 
-                                          (current_y - start_y)**2 + 
-                                          (current_z - start_z)**2)
-            print(f"Dist: {distance_traveled:.2f} | x:{current_x:.2f} y:{current_y:.2f}")
+            # current_pos = shared_variables.latest_distance
+            # current_x = current_pos.position_body.x_m
+            # current_y = current_pos.position_body.y_m
+            # current_z = current_pos.position_body.z_m
+            # distance_traveled = math.sqrt((current_x - start_x)**2 + 
+            #                               (current_y - start_y)**2 + 
+            #                               (current_z - start_z)**2)
+            # print(f"Dist: {distance_traveled:.2f} | x:{current_x:.2f} y:{current_y:.2f}")
             
-            await asyncio.sleep(0.05)
+            # await asyncio.sleep(0.05)
     
     except Exception as e:
-        print(f"Failed to fly: {e}")
+        #print(f"Failed to fly: {e}")
+        print(f"Failed to receive sensor data: {e}")
 
-    finally:
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await asyncio.sleep(1)
-        await drone.offboard.stop()
-        #print("Move complete")
-        print("Reached end of cmd_fly code!")  
+    # finally:
+    #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
+    #     await asyncio.sleep(1)
+    #     await drone.offboard.stop()
+    #     #print("Move complete")
+    #     print("Reached end of cmd_fly code!")  
 
 async def cmd_rotate(drone, command: DroneCommand):
     #if avoid_collision:

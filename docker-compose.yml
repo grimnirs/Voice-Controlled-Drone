@@ -8,10 +8,10 @@ services:
     ports:
       - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
     environment:
-      - ARDUPILOT_CUSTOM_PARAMS=--nosync --param AHRS_EKF_TYPE=3 --param EK3_SRC1_POSXY=6 --param EK3_SRC1_POSZ=6 --param EK3_SRC1_VELXY=6 --param EK3_SRC1_VELZ=6 --param EK3_SRC1_YAW=6 --param VISO_TYPE=1
+      - ARDUPILOT_CUSTOM_PARAMS=--nosync --param AHRS_EKF_TYPE=3 --param EK3_SRC1_POSXY=6 --param EK3_SRC1_POSZ=6 --param EK3_SRC1_VELXY=6 --param EK3_SRC1_VELZ=6 --param EK3_SRC1_YAW=6 --param VISO_TYPE=1 --param RNGFND1_TYPE=10 --param RNGFND1_ORIENT=25 --param RNGFND2_TYPE=10 --param RNGFND2_ORIENT=0 --param RNGFND3_TYPE=10 --param RNGFND3_ORIENT=24    
+      - GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build
       - GZ_WORLD=iris_warehouse.sdf   # Change to load a different world
     volumes:
-      - ./ardupilot_gazebo:/home/ardupilot/ardupilot_gazebo
       - ./sim/entrypoint.sh:/home/ardupilot/entrypoint.sh
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
       - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
@@ -27,22 +27,11 @@ services:
       - sim
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
+      - PYMAVLINK_ADDRESS=udpout:sim:14552
     volumes:
-      - ./logic-engine:/app    
+      - ./logic-engine:/app
+      - ./vision_efk:/app/vision_efk    
     tty: true
-
-  vision-injector:
-    build: 
-      context: ./vision_efk
-      dockerfile: Dockerfile # Ensure this points to your Dockerfile path
-    container_name: vision-injector
-    depends_on:
-      - sim
-    environment:
-      - SITL_ADDRESS=udpin://0.0.0.0:14552 #ska det inte vara udpout
-    volumes:
-      - ./vision_efk:/app
-    restart: always
   
   camera-sensor:
     build: ./models/optical_flow

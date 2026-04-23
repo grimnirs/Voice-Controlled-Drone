@@ -16,7 +16,7 @@ import os
 import asyncio
 from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand
-from collision_handler import watch_distance
+from vision_efk.collision_handler import watch_distance 
 
 async def run():
     address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")

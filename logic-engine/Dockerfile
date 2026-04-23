@@ -11,7 +11,8 @@ FROM python:3.11-slim
 
 RUN pip install --no-cache-dir \
     mavsdk \
-    asyncio
+    asyncio \
+    pymavlink
 
 WORKDIR /app
 COPY . .

@@ -206,9 +206,14 @@
         <sensorName>lidar_down</sensorName>
       </rangefinder>
       
-      <proximity>
+      <rangefinder>
         <sensorName>lidar_forward</sensorName>
-      </proximity>
+      </rangefinder>
+      
+      <rangefinder>
+        <sensorName>lidar_up</sensorName>
+      </rangefinder>
+      
 
       <!--
           incoming control command [0, 1]
@@ -217,6 +222,7 @@
           offset = 0
           multiplier = 838 max rpm / 1 = 838
         -->
+          
       <control channel="0">
         <jointName>iris_with_standoffs::rotor_0_joint</jointName>
         <useForce>1</useForce>
@@ -356,9 +362,8 @@
         <ray>
           <scan>
             <horizontal>
-              <samples>360</samples>
-              <resolution>1</resolution>
-              <min_angle>-1.57</min_angle> <max_angle>1.57</max_angle>
+              <samples>1</samples> <resolution>1</resolution>
+              <min_angle>0</min_angle> <max_angle>0</max_angle>
             </horizontal>
           </scan>
           <range>
@@ -371,7 +376,7 @@
     </link>
 
     <link name="lidar_down_link">
-      <pose>0 0 -0.05 0 1.5707 0</pose> 
+      <pose>0 0 -0.1 0 1.5707 0</pose> 
       <sensor name="lidar_down" type="gpu_ray">
         <update_rate>20</update_rate>
         <ray>
@@ -383,11 +388,33 @@
             </horizontal>
           </scan>
           <range>
-            <min>0.1</min>
+            <min>0.05</min> 
             <max>30.0</max>
           </range>
         </ray>
         <always_on>1</always_on>
+      </sensor>
+    </link>
+
+    <link name="lidar_up_link">
+      <pose>0 0 0.05 0 -1.5707 0</pose> 
+      <sensor name="lidar_up" type="gpu_ray">
+        <update_rate>20</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>0</min_angle> <max_angle>0</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.1</min>
+            <max>20.0</max>
+          </range>
+        </ray>
+        <always_on>1</always_on>
+        <visualize>true</visualize>
       </sensor>
     </link>
 
@@ -451,6 +478,11 @@
     <joint name="lidar_down_joint" type="fixed">
       <parent>iris_with_standoffs::base_link</parent>
       <child>lidar_down_link</child>
+    </joint>
+
+    <joint name="lidar_up_joint" type="fixed">
+      <parent>iris_with_standoffs::base_link</parent>
+      <child>lidar_up_link</child>
     </joint>
 
     <joint name="camera_down_joint" type="fixed">
