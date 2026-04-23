@@ -2,6 +2,7 @@ from pymavlink import mavutil
 import time
 import math
 import os
+import json
 
 print("camera_sensor started")
 
@@ -16,6 +17,17 @@ def rotate_body_to_world(vx_body, vy_body, yaw_rad):
     vx_world = vx_body * math.cos(yaw_rad) - vy_body * math.sin(yaw_rad)
     vy_world = vx_body * math.sin(yaw_rad) + vy_body * math.cos(yaw_rad)
     return vx_world, vy_world #säkerställer att kroppen alltid är samma norr/öst position
+
+def get_current_pos():
+    return position_x, position_y
+
+def save_position():
+    with open("position.json", "w") as f:
+        json.dump({
+            "x": position_x,
+            "y": position_y,
+            "distance": math.sqrt(position_x**2 + position_y**2)
+        }, f)
 
 #msg: sensor data
 #yaw_rad: drönarens nuvarande rotation/kurs i radianer
@@ -49,6 +61,9 @@ def on_optical_flow(msg, yaw_rad):
         f"Pos: ({position_x:.2f}, {position_y:.2f}) m | "
         f"Dist: {distance:.2f} m | Q:{quality}"
     )
+    position_x += vx_world * dt
+    position_y += vy_world * dt
+    save_position()
 
 # --- Main retry loop ---
 while True:
@@ -93,6 +108,7 @@ while True:
 
             elif msg_type == "OPTICAL_FLOW":
                 print(f"OPTICAL_FLOW raw → x:{msg.flow_x} y:{msg.flow_y} px/s")
+                print(f"GROUND DISTANCE: {msg.ground_distance}")
                 on_optical_flow(msg, current_yaw) #för att beräkna positionen
 
     except Exception as e:
