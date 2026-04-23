@@ -13,10 +13,12 @@ Usage:
 
 import shared_variables
 import os
+import json
 import asyncio
 from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand
 from vision_efk.collision_handler import watch_distance 
+
 
 async def run():
     address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")
@@ -49,39 +51,29 @@ async def run():
 
     asyncio.create_task(watch_distance(drone))
 
-    arm_cmd: DroneCommand = {
-        "action": "arm"
-    }
-    
-    takeoff_cmd: DroneCommand = {
-        "action": "takeoff"
-    }
-
-    fly_cmd: DroneCommand = {
-        "action": "fly",
-        "direction": "forward",
-        "integer": 10,
-        "unit": "meters"
-    }  
+    command_file = 'commands.json'
     
     async def cmd_handler(drone):
-        # await asyncio.sleep(40)
-        print("Arming...")
-        await txt_to_cmd(drone, arm_cmd)
-        await asyncio.sleep(15) 
+        print("> > > Waiting for voice command")
+        last_idx = -1
 
-        # Lyft (bara en gång)
-        print("Taking off...")
-        await txt_to_cmd(drone, takeoff_cmd)
-        
-        # Vänta tills den nått höjd
-        await asyncio.sleep(15) 
-        
-        # Flyg framåt
-        print("Flying...")
-        await txt_to_cmd(drone, fly_cmd)
+        while True:
+            if os.path.exists(command_file):
+                try:
+                    with open(command_file, 'r') as f:
+                        v_commands = json.load(f)
+                    
+                    if len(v_commands) > 0 and (len(v_commands) - 1) > last_idx:
+                        latest_command = v_commands[-1]
+                        last_idx = len(v_commands) - 1
+                        print(f"> > > New Voice Command: {latest_command}")
+                    
+                        await txt_to_cmd(drone, latest_command)
+                except (json.JSONDecodeError, Exception) as e:
+                    print(f"Error reading commands: {e}")
+            await asyncio.sleep(0.5)
 
-        await asyncio.sleep(15)
+    await asyncio.sleep(15)
         
         # # Landa efter flygningen
         # await asyncio.sleep(5)

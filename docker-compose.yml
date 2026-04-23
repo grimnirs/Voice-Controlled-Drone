@@ -25,6 +25,9 @@ services:
     container_name: logic-engine
     depends_on:
       - sim
+    devices:
+      - "/dev/snd:/dev/snd"
+    privileged: true
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
       - PYMAVLINK_ADDRESS=udpout:sim:14552
