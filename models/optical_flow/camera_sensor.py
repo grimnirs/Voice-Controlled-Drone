@@ -21,6 +21,7 @@ def rotate_body_to_world(vx_body, vy_body, yaw_rad):
 def get_current_pos():
     return position_x, position_y
 
+
 def save_position():
     with open("position.json", "w") as f:
         json.dump({
@@ -46,7 +47,7 @@ def on_optical_flow(msg, yaw_rad):
     if quality < 50:
         print(f" Low quality ({quality}), skipping")
         return #ifall ngt saknas i meddelandet vill vi inte använda det
-
+    
     vx_body = msg.flow_comp_m_x  # m/s in drone body X
     vy_body = msg.flow_comp_m_y  # m/s in drone body Y
 
@@ -59,10 +60,9 @@ def on_optical_flow(msg, yaw_rad):
     print(
         f"  Flow → vx:{vx_body:.3f} vy:{vy_body:.3f} m/s | "
         f"Pos: ({position_x:.2f}, {position_y:.2f}) m | "
-        f"Dist: {distance:.2f} m | Q:{quality}"
+        f"Distance travelled: {distance:.2f} m | Q:{quality}"
     )
-    position_x += vx_world * dt
-    position_y += vy_world * dt
+
     save_position()
 
 # --- Main retry loop ---

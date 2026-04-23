@@ -6,7 +6,7 @@ import asyncio
 import sys
 import json
 import os
-sys.path.append("/Users/feliciafalldin/Kanden/Voice-Controlled-Drone/models/optical_flow")
+# sys.path.append("/Users/hannahpettersson/Voice-Controlled-Drone/models/optical_flow")
 from models.optical_flow.camera_sensor import get_current_pos
 
 
@@ -134,8 +134,6 @@ async def cmd_fly(drone, command:DroneCommand):
     velocity = 3 # make a set_velocity func or have velocity as a parameter in the command handler
     # # time = integer / velocity
 
-    distance_traveled = 0.0
-    last_time = asyncio.get_event_loop().time()
 
     if direction_key is None or integer is None or unit is None:
         print(f"Action requires direction, integer and unit!") 
@@ -151,48 +149,40 @@ async def cmd_fly(drone, command:DroneCommand):
     down = direction_vector[2] * velocity
     
     start_x, start_y = get_current_pos()
-    print(f"Command received: fly {integer}m {direction_key} | Starting from ({start_x:.2f}, {start_y:.2f})")
+    print(f"Command received: fly {integer}m {direction_key} | Starting from ({start_x:.2f}, {start_y:.2f})")    #add start_z
     
+    traveled = 0.0
     try:
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0))
+        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0)) #Ev ändra till start_x och start_y
         await drone.offboard.start()
+
+        #add: if down/up, don't enter while loop and make new func
         
-        while distance_traveled < integer:
-            curr_x,curr_y = get_current_pos()
-            travelled = math.sqrt(((curr_x - start_x)**2) + ((curr_y - start_y)**2))
-            now = asyncio.get_event_loop().time()
-            dt = now - last_time
-            last_time = now
-            
-            # Current speed relative to the floor
-            current_speed = math.sqrt(curr_x**2 + curr_y**2)
-            distance_traveled += current_speed * dt
-            
+        while traveled < integer:
+            curr_x, curr_y, distance = get_latest_position()
+            travelled += math.sqrt(((curr_x - start_x)**2) + ((curr_y - start_y)**2))
+        
             print(f"Traveled: {travelled:.2f}/{integer}m | Current pos: ({curr_x:.2f}, {curr_y:.2f})")
-            
-            if travelled >= integer:
-                print(f"Target reached!")
-                break
-            
+        
+        
             if shared_variables.avoid_collision_forward and fwd > 0:
                 print("Obstacle! Stopping.")
                 break
-            
+        
             await drone.offboard.set_velocity_body(
                 VelocityBodyYawspeed(fwd, right, down, 0.0)
             )
-            await asyncio.sleep(0.05)
 
-        
+                
         
     except Exception as e:
         print(f"failed to fly {e}")
         
     finally:
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0,0.0,0.0))
+        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0))
         await asyncio.sleep(0.5)
         await drone.offboard.stop()
-        print(f"Move complete | Final pos: ({curr_x:.2f}, {curr_y:.2f})")
+        print(f"Move complete \n Distance travelled: {traveled} | Targed distance: {integer} pos: ({curr_x:.2f}, {curr_y:.2f})")
     
 
     # start_y = start_pos.position_body.y_m
