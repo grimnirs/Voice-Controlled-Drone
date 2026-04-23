@@ -20,17 +20,18 @@ services:
 
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
-    # image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
     build: ./logic-engine                   
     container_name: logic-engine
     depends_on:
       - sim
     environment:
-      - SITL_ADDRESS=tcpout://sim:5790
-      - PYMAVLINK_ADDRESS=udpout:sim:14552
+      - PYTHONPATH=/app
+      - MAVSDK_ADDRESS=tcp://sim:5790      # ← add this (MAVSDK format)
+      - SITL_ADDRESS=tcpout:sim:5790       # ← already correct, keep as is
     volumes:
       - ./logic-engine:/app
-      - ./vision_efk:/app/vision_efk    
+      - ./vision_efk:/app/vision_efk  
+      - ./models:/app/models  
     tty: true
   
   camera-sensor:

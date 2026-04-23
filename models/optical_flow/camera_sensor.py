@@ -4,23 +4,18 @@ import math
 import os
 import json
 
-print("camera_sensor started")
-
 position_x = 0.0
 position_y = 0.0
 last_time = None
 current_yaw = 0.0  # radians
 
-#översätter body-fixed velocities till world-fixed
-#dvs fram kan vara norr eller syd beroende på hur kroppen är riktad
 def rotate_body_to_world(vx_body, vy_body, yaw_rad):
     vx_world = vx_body * math.cos(yaw_rad) - vy_body * math.sin(yaw_rad)
     vy_world = vx_body * math.sin(yaw_rad) + vy_body * math.cos(yaw_rad)
-    return vx_world, vy_world #säkerställer att kroppen alltid är samma norr/öst position
+    return vx_world, vy_world
 
 def get_current_pos():
     return position_x, position_y
-
 
 def save_position():
     with open("position.json", "w") as f:
@@ -30,33 +25,31 @@ def save_position():
             "distance": math.sqrt(position_x**2 + position_y**2)
         }, f)
 
-#msg: sensor data
-#yaw_rad: drönarens nuvarande rotation/kurs i radianer
 def on_optical_flow(msg, yaw_rad):
-    global position_x, position_y, last_time #global för att vi vill ändra på de globala variablerna
+    global position_x, position_y, last_time
 
-    now = time.time() 
+    now = time.time()
 
-    if last_time is None: #för att kunna räkna på tidsskillnaden --> safety check
+    if last_time is None:
         last_time = now
         return
 
-    dt = now - last_time #skillnaden sen vi mätte tiden senast
+    dt = now - last_time
     last_time = now
     quality = getattr(msg, "quality", 0)
     if quality < 50:
         print(f" Low quality ({quality}), skipping")
-        return #ifall ngt saknas i meddelandet vill vi inte använda det
-    
-    vx_body = msg.flow_comp_m_x  # m/s in drone body X
-    vy_body = msg.flow_comp_m_y  # m/s in drone body Y
+        return
 
-    vx_world, vy_world = rotate_body_to_world(vx_body, vy_body, yaw_rad) #rotera den rätt
+    vx_body = msg.flow_comp_m_x
+    vy_body = msg.flow_comp_m_y
 
-    position_x += vx_world * dt #åker vi med en hastighet och har rört oss dt 
+    vx_world, vy_world = rotate_body_to_world(vx_body, vy_body, yaw_rad)
+
+    position_x += vx_world * dt
     position_y += vy_world * dt
 
-    distance = math.sqrt(position_x**2 + position_y**2) #hur långt vi åkt
+    distance = math.sqrt(position_x**2 + position_y**2)
     print(
         f"  Flow → vx:{vx_body:.3f} vy:{vy_body:.3f} m/s | "
         f"Pos: ({position_x:.2f}, {position_y:.2f}) m | "
@@ -65,53 +58,55 @@ def on_optical_flow(msg, yaw_rad):
 
     save_position()
 
-# --- Main retry loop ---
-while True:
-    try:
-        print("Connecting to MAVLink...")
-        # master = mavutil.mavlink_connection("udpin:0.0.0.0:14551")m
-        addr = os.getenv('SITL_ADDRESS', 'udpin:0.0.0.0:14551')
-        master = mavutil.mavlink_connection(addr)
 
-        print("Waiting for heartbeat... (camera)")
-        master.wait_heartbeat(timeout=10)
-        print("✅ Connected")
+if __name__ == "__main__":
+    print("camera_sensor started")
 
-        master.mav.request_data_stream_send(
-            master.target_system,
-            master.target_component,
-            mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,  # ATTITUDE
-            20, 1
-        ) #skicka yaw 20 gånger i sekunden
-        master.mav.request_data_stream_send(
-            master.target_system,
-            master.target_component,
-            mavutil.mavlink.MAV_DATA_STREAM_EXTRA3,  # OPTICAL_FLOW
-            10, 1
-        ) #skicka optical flow 10 gånger i sekunden
+    while True:
+        try:
+            print("Connecting to MAVLink...")
+            addr = os.getenv('SITL_ADDRESS', 'udpin:0.0.0.0:14551')
+            master = mavutil.mavlink_connection(addr)
 
-        while True:
-            msg = master.recv_match(
-                type=["OPTICAL_FLOW", "ATTITUDE"],
-                blocking=True,
-                timeout=5
+            print("Waiting for heartbeat... (camera)")
+            master.wait_heartbeat(timeout=10)
+            print("✅ Connected")
+
+            master.mav.request_data_stream_send(
+                master.target_system,
+                master.target_component,
+                mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
+                20, 1
+            )
+            master.mav.request_data_stream_send(
+                master.target_system,
+                master.target_component,
+                mavutil.mavlink.MAV_DATA_STREAM_EXTRA3,
+                10, 1
             )
 
-            if msg is None:
-                print("No message received (timeout)")
-                continue
+            while True:
+                msg = master.recv_match(
+                    type=["OPTICAL_FLOW", "ATTITUDE"],
+                    blocking=True,
+                    timeout=5
+                )
 
-            msg_type = msg.get_type()
+                if msg is None:
+                    print("No message received (timeout)")
+                    continue
 
-            if msg_type == "ATTITUDE":
-                current_yaw = msg.yaw  #spara nuvarande kurs --> för att veta vilket håll hastigheten pekar åt
+                msg_type = msg.get_type()
 
-            elif msg_type == "OPTICAL_FLOW":
-                print(f"OPTICAL_FLOW raw → x:{msg.flow_x} y:{msg.flow_y} px/s")
-                print(f"GROUND DISTANCE: {msg.ground_distance}")
-                on_optical_flow(msg, current_yaw) #för att beräkna positionen
+                if msg_type == "ATTITUDE":
+                    current_yaw = msg.yaw
 
-    except Exception as e:
-        print(f"Connection lost, retrying in 2s... ({e})")
-        last_time = None  # reset timer so dt doesn't blow up on reconnect
-        time.sleep(2)
+                elif msg_type == "OPTICAL_FLOW":
+                    print(f"OPTICAL_FLOW raw → x:{msg.flow_x} y:{msg.flow_y} px/s")
+                    print(f"GROUND DISTANCE: {msg.ground_distance}")
+                    on_optical_flow(msg, current_yaw)
+
+        except Exception as e:
+            print(f"Connection lost, retrying in 2s... ({e})")
+            last_time = None
+            time.sleep(2)

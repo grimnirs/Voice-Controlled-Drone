@@ -150,19 +150,19 @@ async def cmd_fly(drone, command:DroneCommand):
     
     start_x, start_y = get_current_pos()
     print(f"Command received: fly {integer}m {direction_key} | Starting from ({start_x:.2f}, {start_y:.2f})")    #add start_z
-    
-    traveled = 0.0
+    curr_x, curr_y = start_x, start_y
+    travelled = 0.0
     try:
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0)) #Ev ändra till start_x och start_y
+        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0,0.0)) #Ev ändra till start_x och start_y
         await drone.offboard.start()
 
         #add: if down/up, don't enter while loop and make new func
         
-        while traveled < integer:
+        while travelled < integer:
             curr_x, curr_y, distance = get_latest_position()
             travelled += math.sqrt(((curr_x - start_x)**2) + ((curr_y - start_y)**2))
         
-            print(f"Traveled: {travelled:.2f}/{integer}m | Current pos: ({curr_x:.2f}, {curr_y:.2f})")
+            print(f"travelled: {travelled:.2f}/{integer}m | Current pos: ({curr_x:.2f}, {curr_y:.2f})")
         
         
             if shared_variables.avoid_collision_forward and fwd > 0:
@@ -179,10 +179,10 @@ async def cmd_fly(drone, command:DroneCommand):
         print(f"failed to fly {e}")
         
     finally:
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0))
+        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         await asyncio.sleep(0.5)
         await drone.offboard.stop()
-        print(f"Move complete \n Distance travelled: {traveled} | Targed distance: {integer} pos: ({curr_x:.2f}, {curr_y:.2f})")
+        print(f"Move complete \n Distance travelled: {travelled} | Targed distance: {integer} pos: ({curr_x:.2f}, {curr_y:.2f})")
     
 
     # start_y = start_pos.position_body.y_m

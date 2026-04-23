@@ -19,7 +19,7 @@ from command_handler import txt_to_cmd, DroneCommand
 from vision_efk.collision_handler import watch_distance 
 
 async def run():
-    address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")
+    address = os.getenv("MAVSDK_ADDRESS", "tcpout://sim:5790")
 
     print("Logic Engine Booting Up...")
 
