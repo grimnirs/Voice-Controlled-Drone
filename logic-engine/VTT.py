@@ -4,6 +4,8 @@ import asyncio
 import os
 import string
 import re
+import subprocess
+
 
 #tanken är att vi ska importa 
 #OBS MAN MÅSTE VA INNE I BUILD 
@@ -13,6 +15,13 @@ import re
 
 #Nästa steg: "move to the left 10 meters and then move to the left 5 meters and then move up 3 meters..."
 #Förbättra hanteringen av kommandon, just nu krävs en del timeing med samplingen
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WHISPER_BIN   = os.path.join(BASE_DIR, "../whisper.cpp/build/bin/whisper-stream")
+WHISPER_MODEL = os.path.join(BASE_DIR, "../whisper.cpp/models/ggml-base.en.bin")
+COMMANDS_FILE = os.path.join(BASE_DIR, "commands.json")
+
+RE_OVER = re.compile(r'\bover\b', re.IGNORECASE)
+RE_TRIGGERS = re.compile(r'\b(drone|over)\b', re.IGNORECASE)
 
 # A dictionary of valid Action -> Direction pairs
 VALID_FLIGHT_COMMANDS = {
@@ -41,6 +50,8 @@ WORD_TO_DIGIT = {
 # A list of valid units to use in commands
 VALID_UNITS = ["millimeters", "centimeters", "meters", "meter"]
 
+_command_log = []
+
 # This function checks for valid action and directions with regard to the
 def parse_and_validate(text):
     text = text.lower()
@@ -51,19 +62,27 @@ def parse_and_validate(text):
     elif "rotate" in text or "turn" in text: action = "rotate"
     elif "land" in text: action = "land"
     elif "stop" in text or "halt" in text: action = "stop"
+    elif "arm" in text: action = "arm"
     
     # Identify the direction
     direction = None
-    directions = ["forward", "backward", "left", "right", "up", "down", "clockwise", "counter-clockwise"]
-    for d in directions:
-        if d in text:
-            direction = d
-            break
+    if action in ["move", "rotate"]:
+        directions = ["forward", "backward", "left", "right", "up", "down", "clockwise", "counter-clockwise"]
+        for d in directions:
+            if d in text:
+                direction = d
+                break
 
     # Validation check
     # Check if the action exists and if the direction is valid for that specific action
     if action in VALID_FLIGHT_COMMANDS:
         allowed_directions = VALID_FLIGHT_COMMANDS[action]
+        
+        if action in ["arm", "takeoff", "land", "stop"]:
+            return {
+                "action":action,
+                "direction": None
+            }
         
         if direction in allowed_directions:
             return {
@@ -93,32 +112,20 @@ def write_json(new_data, filename='../../logic-engine/commands.json'):
         json.dump(file_data, file, indent=4)
 
 # --- RETRIEVE INTEGER LOOP ---
-def get_int(cmd):
-    words = cmd.lower().split()
-    words = [w.strip(string.punctuation) for w in words]
-    
+def get_int(words):
     for word in words:
         if word in WORD_TO_DIGIT:
             return WORD_TO_DIGIT[word]
         if word.isdigit():
             return int(word)
 
-# --- RETRIEVE UNIT LOOP ---            
-def get_unit(cmd):
-    words = cmd.lower().split()
-    
-    cleaned_words = [w.strip(string.punctuation) for w in words]
-
-    for i in range(len(cleaned_words) - 1):
-        word = cleaned_words[i]
-        print(cleaned_words[i])
+def get_unit(words):
+    for i in range(len(words) - 1):
+        word = words[i]
         if word.isdigit() or word in WORD_TO_DIGIT:
-            next_word = cleaned_words[i + 1]
+            next_word = words[i + 1]
             if next_word in VALID_UNITS:
                 return next_word
-        else:
-            i = i + 1
-            continue # ska vi ha en default?
 
 # --- CLEAN UP THE TEXT ---
 def clean_text(text):
@@ -128,71 +135,108 @@ def clean_text(text):
 def remove_triggers(text):
     return re.sub(r'\b(drone|over)\b', '', text, flags=re.IGNORECASE).strip()
 
+def flush_to_disk():
+    with open(COMMANDS_FILE, 'w') as f:
+        json.dump(_command_log, f, indent=4)
+    print(f"Flushed {len(_command_log)} commands to disk")
+
+def append_command(data):
+    _command_log.append(data)
+    flush_to_disk()
+
 # --- MAIN STREAMING LOOP ---
 # USES A COMMAND BUFFER --> LIKE A WALKIE TALKIE
-async def main():
+
+
+
+def main():
     command_buffer = []
     is_active = False
+    rolling_buffer = ""  
 
-    for cmd in sys.stdin:
-        cmd = clean_text(cmd)
-        if not cmd:
-            continue
-    
-        if "stop." in cmd.lower():
-            is_active = False
+    proc = subprocess.Popen(
+        [WHISPER_BIN, "-m", WHISPER_MODEL, "--step", "500", "--length", "5000"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,  
+        text=True,
+        bufsize=1  
+    )
 
-        if "drone" in cmd.lower() and not is_active:
-            print(">>> Listening: ")
-            print(cmd)
-            if "stop." in cmd.lower():
+    try:
+        for raw_line in proc.stdout:
+            chunk = raw_line.lower().strip()
+            if not chunk:
+                continue
+
+            rolling_buffer += " " + chunk
+            rolling_buffer = rolling_buffer.strip()
+
+            has_drone = "drone" in rolling_buffer and not is_active
+            has_over  = bool(RE_OVER.search(rolling_buffer))
+            has_stop  = "stop." in rolling_buffer
+
+            if has_stop:
                 is_active = False
-            else:
+                rolling_buffer = ""
+                command_buffer = []
+                print(">>> Force stopped")
+                break
+
+            if has_drone and not is_active:
+                print(">>> Activated, listening...")
                 is_active = True
                 command_buffer = []
-        
-        if is_active:
-            cleaned = remove_triggers(cmd)
-            if cleaned:
-                command_buffer.append(cleaned)
-            
-            
-            if re.search(r'\bover\b', cmd.lower().strip(string.punctuation)):
-                full_command = " ".join(command_buffer)
-                structured_json = parse_and_validate(full_command)
-                print(structured_json)
-                
-                if structured_json:
-                    # If valid, convert to string and proceed to MAVSDK
-                    print(cmd)
-                    integer = get_int(full_command)
-                    unit = get_unit(full_command)
-                        
-                    if integer is None or unit is None:
-                        print("DEBUG: Invalid command, no integer or unit in command")
-                        continue
-                    else:
-                        structured_json.update({
-                            "integer": integer,
-                            "unit": unit
-                        })
-                        print("nu skriver vi till json filen")
-                        write_json(structured_json)
-                        # Here you would call your MAVSDK function:
-                        # execute_mavlink_command(structured_json)
-                else:
-                    print("DEBUG: Invalid command combination detected, skipping...")
-                print(">>> Stopped Listening")
-                is_active = False
-                command_buffer = []
-            else:
-                print("Did not detect 'over'")
-        else:
-            print(">>> Stopped Listening")
+                # Trim everything before "drone" so we don't carry old noise
+                drone_idx = rolling_buffer.index("drone")
+                rolling_buffer = rolling_buffer[drone_idx:]
 
-           
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
+            if is_active:
+                cleaned = RE_TRIGGERS.sub('', rolling_buffer).strip()
+
+                if has_over:
+                    full_command = " ".join(command_buffer) + " " + cleaned
+                    full_command = full_command.strip()
+
+                    structured = parse_and_validate(full_command)
+                    if structured:
+                        action = structured["action"]
+                        if action in ["arm", "takeoff", "land", "stop"]:
+                            structured.update(
+                                {
+                                    "integer" : None,
+                                    "unit": None
+                                }
+                            )
+                        else:
+                            words = [w.strip(string.punctuation) for w in full_command.split()]
+                            integer = get_int(words)
+                            unit = get_unit(words)
+                        
+
+                            if integer and unit:
+                                structured.update({"integer": integer, "unit": unit})
+                                append_command(structured)
+                                print(f"✓ Command: {structured}")
+                            else:
+                                print("DEBUG: Missing integer or unit")
+                    else:
+                        print("DEBUG: Invalid command")
+
+                    # Reset everything after a completed command
+                    is_active = False
+                    command_buffer = []
+                    rolling_buffer = ""  # Fresh start after "over"
+                else:
+                    if cleaned:
+                        command_buffer.append(cleaned)
+                    words = rolling_buffer.split()
+                    if len(words) > 20:
+                        rolling_buffer = " ".join(words[-20:])
+
     except KeyboardInterrupt:
-        pass
+        proc.terminate()
+        flush_to_disk()
+        print("Exited cleanly")
+
+if __name__ == "__main__":
+    main()
