@@ -7,5 +7,6 @@
 
 latest_distance_up = None
 latest_distance_forward = None
+latest_distance_down = None
 avoid_collision_up = False 
 avoid_collision_forward = False

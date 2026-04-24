@@ -41,9 +41,11 @@ async def run():
 
     async def wait_until_ready(drone):
         async for health in drone.telemetry.health():
-            if health.is_global_position_ok and health.is_home_position_ok:
+            if health.is_armable:
                 print("Drone ready!")
                 break
+            print("Waiting for armable state...")
+            await asyncio.sleep(1)
     
     await wait_until_ready(drone)
 

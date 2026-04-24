@@ -6,4 +6,4 @@ COPY . .
 
 RUN pip install mavsdk
 
-CMD ["python", "vision_injector.py"]
+CMD ["python", "collision_handler.py"]
