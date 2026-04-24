@@ -14,7 +14,7 @@ Usage:
 import os
 import asyncio
 from mavsdk import System
-from command_handler import txt_to_cmd, DroneCommand
+from command_handler import txt_to_cmd, DroneCommand, stop_hover
 
 
 # latest_distance = 100.0 # Global variable
@@ -75,6 +75,20 @@ async def run():
         "integer": 10,
         "unit": "meters"
     }  
+
+    fly_cmd_right: DroneCommand = {
+        "action": "fly",
+        "direction": "right",
+        "integer": 10,
+        "unit": "meters"
+    }
+
+    fly_cmd_left: DroneCommand = {
+        "action": "fly",
+        "direction": "left",
+        "integer": 10,
+        "unit": "meters"
+    }
     
     async def cmd_handler(drone):
         print("Arming...")
@@ -90,10 +104,11 @@ async def run():
         
         # Flyg framåt
         print("Flying...")
-        await txt_to_cmd(drone, fly_cmd)
+        await txt_to_cmd(drone, fly_cmd_right)
 
-        await asyncio.sleep(15)
-        
+        await asyncio.sleep(5)
+
+
         # # Landa efter flygningen
         # await asyncio.sleep(5)
         # print("Uppdrag slutfört, landar...")

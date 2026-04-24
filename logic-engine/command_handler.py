@@ -17,6 +17,8 @@ ACTIONS = {
     "takeoff":str,
     "land":str,
     "fly":str,
+    "stop":str,
+    "stop_hover":str,
 }
 
 #NED - North, East, Down
@@ -86,14 +88,14 @@ async def hold_position(drone):
         pass  
 
 async def start_hover(drone):
-    global hover_task
+    global _hover_task
     await stop_hover()  
-    hover_task = asyncio.create_task(hold_position(drone))
+    _hover_task = asyncio.create_task(hold_position(drone))
 
 async def stop_hover():
-    global hover_task
-    if hover_task and not hover_task.done():
-        hover_task.cancel()
+    global _hover_task
+    if _hover_task and not _hover_task.done():
+        _hover_task.cancel()
         await asyncio.sleep(0.05) 
 
 # async def cmd_fly(drone, command:DroneCommand):
@@ -150,6 +152,8 @@ async def get_local_xy_m(drone):
     return None
 
 async def cmd_fly(drone, command:DroneCommand):
+    await stop_hover()
+
     async for in_air in drone.telemetry.in_air():
         if not in_air:
             print("Action denied! Drone not in air!")
@@ -161,7 +165,7 @@ async def cmd_fly(drone, command:DroneCommand):
     direction_key = command.get("direction")
     integer = float(command.get("integer")) 
     unit = command.get("unit")
-    velocity = 1 
+    velocity = 2 
     duration = integer / velocity
     
     if direction_key is None or integer is None or unit is None:
@@ -211,6 +215,8 @@ async def cmd_fly(drone, command:DroneCommand):
 #______
 
 async def cmd_rotate(drone, command: DroneCommand):
+    await stop_hover()
+
     #if avoid_collision:
         #return # what should happen when stopping?
     
@@ -273,9 +279,14 @@ async def cmd_rotate(drone, command: DroneCommand):
         print(f"Failed to rotate: {e}")
 
 async def cmd_stop(drone, command: DroneCommand):
+    await stop_hover()
     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
     await asyncio.sleep(1)
     await drone.offboard.stop()
+
+async def cmd_stop_hover(drone, command: DroneCommand):
+    await stop_hover()
+    print("Hover stopped")
 
 async def txt_to_cmd(drone, command: DroneCommand):
     action = command.get("action") 
@@ -299,6 +310,9 @@ async def txt_to_cmd(drone, command: DroneCommand):
     
     elif action == "stop":
         await cmd_stop(drone, command)
+
+    elif action == "stop_hover":
+        await cmd_stop_hover(drone, command)
 
     else:
         print("Unknown command", {command})
