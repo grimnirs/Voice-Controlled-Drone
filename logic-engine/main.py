@@ -11,12 +11,24 @@ Usage:
     docker compose up    # starts both sim and logic-engine together
 """
 
-import shared_variables
 import os
 import asyncio
 from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand
-from vision_efk.collision_handler import watch_distance 
+
+
+latest_distance = 100.0 # Global variable
+
+async def watch_distance(drone):
+    global latest_distance
+    print("Startar avståndssensor...")
+    try:
+        async for distance in drone.telemetry.distance_sensor():
+            latest_distance = distance.current_distance_m
+            if latest_distance < 2.0:
+                print(f"SENSORDATA: Hinder på {latest_distance:.2f}m")
+    except Exception as e:
+        print(f"Sensor-error: {e}")
 
 async def run():
     address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")
@@ -44,6 +56,8 @@ async def run():
             if health.is_global_position_ok and health.is_home_position_ok:
                 print("Drone ready!")
                 break
+            print("Waiting for armable state...")
+            await asyncio.sleep(1)
     
     await wait_until_ready(drone)
 
@@ -65,17 +79,16 @@ async def run():
     }  
     
     async def cmd_handler(drone):
-        # await asyncio.sleep(40)
         print("Arming...")
         await txt_to_cmd(drone, arm_cmd)
-        await asyncio.sleep(15) 
+        await asyncio.sleep(5) 
 
         # Lyft (bara en gång)
         print("Taking off...")
         await txt_to_cmd(drone, takeoff_cmd)
         
         # Vänta tills den nått höjd
-        await asyncio.sleep(15) 
+        await asyncio.sleep(3) 
         
         # Flyg framåt
         print("Flying...")

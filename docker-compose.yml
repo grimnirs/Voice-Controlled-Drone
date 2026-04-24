@@ -8,9 +8,8 @@ services:
     ports:
       - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
     environment:
-      - ARDUPILOT_CUSTOM_PARAMS=--nosync --param AHRS_EKF_TYPE=3 --param EK3_SRC1_POSXY=6 --param EK3_SRC1_POSZ=6 --param EK3_SRC1_VELXY=6 --param EK3_SRC1_VELZ=6 --param EK3_SRC1_YAW=6 --param VISO_TYPE=1 --param RNGFND1_TYPE=10 --param RNGFND1_ORIENT=25 --param RNGFND2_TYPE=10 --param RNGFND2_ORIENT=0 --param RNGFND3_TYPE=10 --param RNGFND3_ORIENT=24    
-      - GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build
       - GZ_WORLD=iris_warehouse.sdf   # Change to load a different world
+      - ARDUPILOT_CUSTOM_PARAMS=--nosync --param AHRS_EKF_TYPE=3 --param EK3_SRC1_POSXY=3 --param EK3_SRC1_POSZ=1 --param EK3_SRC1_VELXY=3 --param EK3_SRC1_VELZ=3 --param EK3_SRC1_YAW=1 --param RNGFND1_TYPE=10 --param RNGFND1_ORIENT=25 --param RNGFND2_TYPE=10 --param RNGFND2_ORIENT=0 --param RNGFND3_TYPE=10 --param RNGFND3_ORIENT=24
     volumes:
       - ./sim/entrypoint.sh:/home/ardupilot/entrypoint.sh
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
@@ -33,16 +32,3 @@ services:
       - ./vision_efk:/app/vision_efk    
     tty: true
   
-  camera-sensor:
-    build: ./models/optical_flow
-    container_name: camera_sensor
-    ports:
-    - "14551:14551/udp"   #MAVLink UDP - Optical flow
-    depends_on:
-     - sim
-    command: sh -c "sleep 10 && python camera_sensor.py"
-    tty: true
-    environment:
-      - ARDUPILOT_CUSTOM_PARAMS=--nosync --param SIM_FLOW_ENABLE=1 --param FLOW_TYPE=10 --param RNGFND1_TYPE=10 --param RNGFND1_MIN_CM=20 --param RNGFND1_MAX_CM=700 --param EK3_SRC1_POSXY=0 --param EK3_SRC1_VELXY=5 --param EK3_SRC1_POSZ=1 --param EK3_SRC1_VELZ=0 --param EK3_SRC1_YAW=1 --param EK3_SRC_OPTIONS=0 --param SR0_EXTRA1=10
-      - SITL_ADDRESS=udpin:0.0.0.0:14551
-    restart: unless-stopped
