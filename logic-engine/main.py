@@ -17,18 +17,18 @@ from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand
 
 
-latest_distance = 100.0 # Global variable
+# latest_distance = 100.0 # Global variable
 
-async def watch_distance(drone):
-    global latest_distance
-    print("Startar avståndssensor...")
-    try:
-        async for distance in drone.telemetry.distance_sensor():
-            latest_distance = distance.current_distance_m
-            if latest_distance < 2.0:
-                print(f"SENSORDATA: Hinder på {latest_distance:.2f}m")
-    except Exception as e:
-        print(f"Sensor-error: {e}")
+# async def watch_distance(drone):
+#     global latest_distance
+#     print("Startar avståndssensor...")
+#     try:
+#         async for distance in drone.telemetry.distance_sensor():
+#             latest_distance = distance.current_distance_m
+#             if latest_distance < 2.0:
+#                 print(f"SENSORDATA: Hinder på {latest_distance:.2f}m")
+#     except Exception as e:
+#         print(f"Sensor-error: {e}")
 
 async def run():
     address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")
@@ -60,8 +60,6 @@ async def run():
             await asyncio.sleep(1)
     
     await wait_until_ready(drone)
-
-    asyncio.create_task(watch_distance(drone))
 
     arm_cmd: DroneCommand = {
         "action": "arm"
@@ -115,7 +113,6 @@ async def run():
             f"Alt: {position.relative_altitude_m:6.2f} m",
             end="\r",
         )
-
 
 async def print_flight_mode(drone):
     async for mode in drone.telemetry.flight_mode():

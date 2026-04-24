@@ -9,7 +9,6 @@ services:
       - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
     environment:
       - GZ_WORLD=iris_warehouse.sdf   # Change to load a different world
-      - ARDUPILOT_CUSTOM_PARAMS=--nosync --param AHRS_EKF_TYPE=3 --param EK3_SRC1_POSXY=3 --param EK3_SRC1_POSZ=1 --param EK3_SRC1_VELXY=3 --param EK3_SRC1_VELZ=3 --param EK3_SRC1_YAW=1 --param RNGFND1_TYPE=10 --param RNGFND1_ORIENT=25 --param RNGFND2_TYPE=10 --param RNGFND2_ORIENT=0 --param RNGFND3_TYPE=10 --param RNGFND3_ORIENT=24
     volumes:
       - ./sim/entrypoint.sh:/home/ardupilot/entrypoint.sh
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
@@ -19,16 +18,13 @@ services:
 
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
-    # image: ghcr.io/grimnirs/logic-engine:v0.2  # Ladda ner den färdiga miljön
     build: ./logic-engine                   
     container_name: logic-engine
     depends_on:
       - sim
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
-      - PYMAVLINK_ADDRESS=udpout:sim:14552
     volumes:
       - ./logic-engine:/app
-      - ./vision_efk:/app/vision_efk    
     tty: true
   

@@ -108,8 +108,8 @@ async def cmd_fly(drone, command:DroneCommand):
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         await drone.offboard.start()
 
-        start = asyncio.get_event_loop().time()   # ← add () here
-        while asyncio.get_event_loop().time() - start < duration:   # ← and here
+        start = asyncio.get_event_loop().time()   
+        while asyncio.get_event_loop().time() - start < duration: 
             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, right, down, 0.0))
             await asyncio.sleep(0.1)
 
