@@ -114,10 +114,11 @@ async def cmd_fly(drone, command:DroneCommand):
             await asyncio.sleep(0.1)
 
         # Stop after duration
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await asyncio.sleep(0.5)
-        await drone.offboard.stop()
-        print("Flight complete!")
+        while True:
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
+            await asyncio.sleep(1)
+            #await drone.action.hold()
+            print("Flight complete!")
 
     except Exception as e:
         print(f"Failed to fly: {e}")
@@ -178,6 +179,7 @@ async def cmd_rotate(drone, command: DroneCommand):
 
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         await asyncio.sleep(duration)
+        #await drone.action.hold()
         print("Rotation complete")
         
     except Exception as e:
