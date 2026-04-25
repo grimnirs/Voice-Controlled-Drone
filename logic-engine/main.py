@@ -89,6 +89,17 @@ async def run():
         "integer": 10,
         "unit": "meters"
     }
+
+    rotate_clockwise_cmd: DroneCommand = {
+        "action": "rotate",
+        "direction": "clockwise",
+    }
+
+    rotate_counter_clockwise_cmd: DroneCommand = {
+        "action": "rotate",
+        "direction": "counter-clockwise",
+    }
+
     
     async def cmd_handler(drone):
         print("Arming...")
@@ -98,16 +109,21 @@ async def run():
         # Lyft (bara en gång)
         print("Taking off...")
         await txt_to_cmd(drone, takeoff_cmd)
-        
-        # Vänta tills den nått höjd
         await asyncio.sleep(3) 
         
         # Flyg framåt
         print("Flying...")
-        await txt_to_cmd(drone, fly_cmd_right)
-
+        await txt_to_cmd(drone, fly_cmd)
         await asyncio.sleep(5)
 
+        # Rotate
+        print("Rotating...")
+        await txt_to_cmd(drone, rotate_counter_clockwise_cmd)
+        await asyncio.sleep(5)
+
+        print("Flying...")
+        await txt_to_cmd(drone, fly_cmd)
+        await asyncio.sleep(5)
 
         # # Landa efter flygningen
         # await asyncio.sleep(5)

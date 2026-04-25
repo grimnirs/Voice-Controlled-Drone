@@ -17,6 +17,7 @@ ACTIONS = {
     "takeoff":str,
     "land":str,
     "fly":str,
+    "rotate":str,
     "stop":str,
     "stop_hover":str,
 }
@@ -230,14 +231,14 @@ async def cmd_rotate(drone, command: DroneCommand):
         print("Direction not found")
         return
     
-    degree = 45.0
+    degree = 90.0
     speed = 30.0
     target_heading = 0.0
     direction_mult = 0.0
     current_heading = 0.0
-    duration = 1
 
     start_yaw = 0.0
+
     async for heading in drone.telemetry.heading():
         start_yaw = heading.heading_deg
         break
@@ -255,22 +256,23 @@ async def cmd_rotate(drone, command: DroneCommand):
     try: 
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         await drone.offboard.start()    
-
-        while True:
-            async for h in drone.telemetry.heading():
-                current_heading = h.heading_deg
-                break
+     
+        async for h in drone.telemetry.heading():
+            current_heading = h.heading_deg
         
             diff_from_target_degree = (target_heading - current_heading + 180) % 360 - 180
 
-            if abs(diff_from_target_degree) < 1.0:
-                break 
+            if abs(diff_from_target_degree) < 2.0:
+                print(f"Target reached at {current_heading:.1f}!")
+                break
 
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, (direction_mult * speed)))
-            await asyncio.sleep(duration)
+            current_speed = speed if abs(diff_from_target_degree) > 10 else 10.0 # slow down when close to target
+
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, (direction_mult * current_speed)))
+            await asyncio.sleep(0.05)
 
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await asyncio.sleep(duration)
+        await asyncio.sleep(0.05)
         print("Rotation complete")
         await start_hover(drone)
         return
