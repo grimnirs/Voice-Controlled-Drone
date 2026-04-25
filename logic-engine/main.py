@@ -15,6 +15,7 @@ import os
 import asyncio
 from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand, stop_hover
+from drone_connection import connect_and_wait_for_ready
 
 
 # latest_distance = 100.0 # Global variable
@@ -39,27 +40,9 @@ async def run():
         print(f"Connecting in {i} seconds...")
         await asyncio.sleep(1)
 
-    drone = System()
-    print(f"\nConnecting to MAVLink router at: {address}")
-    await drone.connect(system_address=address)
-    print("Waiting for ArduPilot heartbeat...")
+    drone = await connect_and_wait_for_ready(address)
 
-    async for state in drone.core.connection_state():
-        if state.is_connected:
-            print("\n" + "=" * 40)
-            print("✅ CONNECTED TO DRONE MAVLINK!")
-            print("=" * 40 + "\n")
-            break
 
-    async def wait_until_ready(drone):
-        async for health in drone.telemetry.health():
-            if health.is_global_position_ok and health.is_home_position_ok:
-                print("Drone ready!")
-                break
-            print("Waiting for armable state...")
-            await asyncio.sleep(1)
-    
-    await wait_until_ready(drone)
 
     arm_cmd: DroneCommand = {
         "action": "arm"
@@ -104,7 +87,7 @@ async def run():
     async def cmd_handler(drone):
         print("Arming...")
         await txt_to_cmd(drone, arm_cmd)
-        await asyncio.sleep(5) 
+        await asyncio.sleep(3) 
 
         # Lyft (bara en gång)
         print("Taking off...")
@@ -114,21 +97,16 @@ async def run():
         # Flyg framåt
         print("Flying...")
         await txt_to_cmd(drone, fly_cmd)
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
 
         # Rotate
         print("Rotating...")
         await txt_to_cmd(drone, rotate_counter_clockwise_cmd)
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
 
         print("Flying...")
         await txt_to_cmd(drone, fly_cmd)
-        await asyncio.sleep(5)
-
-        # # Landa efter flygningen
-        # await asyncio.sleep(5)
-        # print("Uppdrag slutfört, landar...")
-        # await txt_to_cmd(drone, "land")
+        await asyncio.sleep(3)
             
     # Print flight mode changes
     asyncio.ensure_future(print_flight_mode(drone))

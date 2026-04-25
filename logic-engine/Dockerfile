@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir \
     pymavlink
 
 WORKDIR /app
+RUN pip install pytest pytest-asyncio
 COPY . .
 
 CMD ["python3", "main.py"]
