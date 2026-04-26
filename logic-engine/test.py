@@ -22,14 +22,43 @@ async def drone():
 #-----Test for cmd_arm--------#
 @pytest.mark.asyncio
 async def test_arm_drone(drone):
-    # TODO: check if drone is disarmed, then arm and check if it's armed
-    pass
+    # check that drone is not armed at the start of the test
+    async for is_armed in drone.telemetry.armed():
+        assert not is_armed, "Drone was already armed at the start of the test!"
+        break 
+
+    # send arm command
+    arm_cmd = {"action": "arm"}
+    await txt_to_cmd(drone, arm_cmd)
+    await asyncio.sleep(1)
+
+    # check that drone is armed after sending the command
+    async for is_armed in drone.telemetry.armed():
+        assert is_armed, "Drone failed to arm!"
+        break
 
 #-----Test for cmd_takeoff--------#
 @pytest.mark.asyncio
 async def test_takeoff_and_altitude(drone):
-    # TODO: check if drone is armed, then takeoff and check the altitude after a few seconds
-    pass
+    async for is_armed in drone.telemetry.armed():
+        if not is_armed:
+            print("Drone not armed, arming now...")
+            arm_cmd = {"action": "arm"}
+            await txt_to_cmd(drone, arm_cmd)
+            await asyncio.sleep(2)  
+        break
+    # send takeoff command
+    takeoff_cmd = {"action": "takeoff"}
+    await txt_to_cmd(drone, takeoff_cmd)
+    await asyncio.sleep(5) 
+
+    # check that drone is flying and has reached approximately 3m altitude
+    async for position in drone.telemetry.position():
+        altitude = position.relative_altitude_m
+        print(f"Current altitude: {altitude:.2f} m")
+        assert altitude > 2.5, f"Drone failed to take off properly, altitude is only {altitude:.2f} m"
+        break
+
 
 #-----Test for cmd_fly--------#
 @pytest.mark.asyncio
@@ -54,9 +83,10 @@ async def test_move_left(drone):
 
 #-----Test for cmd_rotate--------#
 @pytest.mark.asyncio
-async def test_rotation_logic(drone):
-    """Testar att drönaren faktiskt har ändrat heading efter en rotation."""
-    # 1. Kolla start-heading
+async def test_rotate_clockwise(drone):
+    """Verifies that the drone rotates approximately 90 degrees clockwise."""
+
+    # Get start heading
     async for h in drone.telemetry.heading():
         start_heading = h.heading_deg
         break
@@ -64,20 +94,47 @@ async def test_rotation_logic(drone):
     rotate_cmd = {"action": "rotate", "direction": "clockwise"}
     await txt_to_cmd(drone, rotate_cmd)
     
-    # 2. Kolla ny heading
+    # Get end heading
     async for h in drone.telemetry.heading():
         end_heading = h.heading_deg
         break
     
-    # Kolla att heading har ändrats (vi förväntar oss ca 90 grader eller åtminstone en skillnad)
-    diff = abs((end_heading - start_heading + 180) % 360 - 180)
-    assert diff > 10, f"Drönaren roterade inte tillräckligt, diff: {diff}"
+    # Calculating the difference in heading
+    diff = (end_heading - start_heading + 540) % 360 - 180
+    
+    print(f"Start: {start_heading:.1f}°, End: {end_heading:.1f}°, Diff: {diff:.1f}°")
+
+    # Check if the difference is approximately 90 degrees (allowing for some margin of error)
+    assert abs(diff - 90) < 5, f"Rotation was {diff:.1f} degrees, expected ~90"
+
+@pytest.mark.asyncio
+async def test_rotate_counter_clockwise(drone):
+    """Verifies that the drone rotates approximately 90 degrees counter-clockwise."""
+
+    # Get start heading
+    async for h in drone.telemetry.heading():
+        start_heading = h.heading_deg
+        break
+
+    rotate_cmd = {"action": "rotate", "direction": "counter-clockwise"}
+    await txt_to_cmd(drone, rotate_cmd)
+    
+    # Get end heading
+    async for h in drone.telemetry.heading():
+        end_heading = h.heading_deg
+        break
+    
+    # Calculating the difference in heading
+    diff = (end_heading - start_heading + 540) % 360 - 180
+    
+    print(f"Start: {start_heading:.1f}°, End: {end_heading:.1f}°, Diff: {diff:.1f}°")
+
+    # Check if the difference is approximately 90 degrees (allowing for some margin of error)
+    assert abs(diff + 90) < 5, f"Rotation was {diff:.1f} degrees, expected ~90"
 
 
 #-----Test for cmd_land--------#
 @pytest.mark.asyncio
 async def test_land(drone):
-    # TODO: check if drone is flying, then land and check if it's on the ground
+    # TODO: check if drone is flying, then send land command and check that it lands properly
     pass
-
-  

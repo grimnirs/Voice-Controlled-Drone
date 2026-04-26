@@ -83,7 +83,7 @@ async def run():
         "direction": "counter-clockwise",
     }
 
-    
+
     async def cmd_handler(drone):
         print("Arming...")
         await txt_to_cmd(drone, arm_cmd)
