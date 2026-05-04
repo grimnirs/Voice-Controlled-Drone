@@ -35,19 +35,26 @@ DIRECTIONS = {
 }
 
 async def cmd_arm(drone, command: DroneCommand):
-    # --- Health check START ---
     async for health in drone.telemetry.health():
         if health.is_global_position_ok and health.is_home_position_ok:
-            print(f"Drone is armable!")
+            print("Drone is armable!")
             break
         else:
             print("Health not ready...")
             await asyncio.sleep(2)
 
+    print("-- Switching to GUIDED mode --")
+    try:
+        await drone.action.set_flight_mode_guided()
+        await asyncio.sleep(1)
+    except Exception as e:
+        print(f"Mode switch warning: {e}")
+
     print("-- Arming motors --")
     while True:
         try:
             await drone.action.arm()
+            print("✅ Armed!")
             break
         except Exception as e:
             print(f"Arming failed: {e}")
@@ -55,18 +62,21 @@ async def cmd_arm(drone, command: DroneCommand):
 
 
 async def cmd_takeoff(drone, command: DroneCommand):
+    print("-- Waiting for armed state --")
     async for is_armed in drone.telemetry.armed():
-        if not is_armed:
-            print("Drone not armed")
-            return
-        break
+        if is_armed:
+            print("Drone is armed, taking off!")
+            break
+        else:
+            print("Waiting for arm...")
+            await asyncio.sleep(1)
 
     print("-- Takeoff --")
     try:
         await drone.action.set_takeoff_altitude(3.0)
         await drone.action.takeoff()
         print("Airborne!")
-        await asyncio.sleep(8)  # wait for drone to reach 3m
+        await asyncio.sleep(8)
     except Exception as e:
         print(f"Takeoff failed: {e}")
 
@@ -306,3 +316,4 @@ async def txt_to_cmd(drone, command: DroneCommand):
 
     else:
         print("Unknown command", {command})
+        return

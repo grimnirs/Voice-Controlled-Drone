@@ -25,7 +25,7 @@ RE_TRIGGERS = re.compile(r'\b(drone|over)\b', re.IGNORECASE)
 
 # A dictionary of valid Action -> Direction pairs
 VALID_FLIGHT_COMMANDS = {
-    "move": ["forward", "backward", "left", "right", "up", "down"],
+    "fly": ["forward", "backward", "left", "right", "up", "down"],
     "rotate": ["clockwise", "counter-clockwise"],
     "land": [None],      # Land doesn't need a direction
     "takeoff": [None],   # Takeoff doesn't need a direction
@@ -58,7 +58,7 @@ def parse_and_validate(text):
     
     # Identify the action
     action = None
-    if "move" in text or "fly" in text: action = "move"
+    if "move" in text or "fly" in text: action = "fly"
     elif "rotate" in text or "turn" in text: action = "rotate"
     elif "land" in text: action = "land"
     elif "stop" in text or "halt" in text: action = "stop"
@@ -66,7 +66,7 @@ def parse_and_validate(text):
     
     # Identify the direction
     direction = None
-    if action in ["move", "rotate"]:
+    if action in ["fly", "rotate"]:
         directions = ["forward", "backward", "left", "right", "up", "down", "clockwise", "counter-clockwise"]
         for d in directions:
             if d in text:
