@@ -16,7 +16,12 @@ import asyncio
 from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand, stop_hover
 from drone_connection import connect_and_wait_for_ready
+import json
+#import sounddevice as sd
+#import whisper
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+command_file = os.path.join(BASE_DIR, 'commands.json')
 
 # latest_distance = 100.0 # Global variable
 
@@ -44,69 +49,97 @@ async def run():
 
 
 
-    arm_cmd: DroneCommand = {
-        "action": "arm"
-    }
+    # arm_cmd: DroneCommand = {
+    #     "action": "arm"
+    # }
     
-    takeoff_cmd: DroneCommand = {
-        "action": "takeoff"
-    }
+    # takeoff_cmd: DroneCommand = {
+    #     "action": "takeoff"
+    # }
 
-    fly_cmd: DroneCommand = {
-        "action": "fly",
-        "direction": "forward",
-        "integer": 10,
-        "unit": "meters"
-    }  
+    # fly_cmd: DroneCommand = {
+    #     "action": "fly",
+    #     "direction": "forward",
+    #     "integer": 10,
+    #     "unit": "meters"
+    # }  
 
-    fly_cmd_right: DroneCommand = {
-        "action": "fly",
-        "direction": "right",
-        "integer": 10,
-        "unit": "meters"
-    }
+    # fly_cmd_right: DroneCommand = {
+    #     "action": "fly",
+    #     "direction": "right",
+    #     "integer": 10,
+    #     "unit": "meters"
+    # }
 
-    fly_cmd_left: DroneCommand = {
-        "action": "fly",
-        "direction": "left",
-        "integer": 10,
-        "unit": "meters"
-    }
+    # fly_cmd_left: DroneCommand = {
+    #     "action": "fly",
+    #     "direction": "left",
+    #     "integer": 10,
+    #     "unit": "meters"
+    # }
 
-    rotate_clockwise_cmd: DroneCommand = {
-        "action": "rotate",
-        "direction": "clockwise",
-    }
+    # rotate_clockwise_cmd: DroneCommand = {
+    #     "action": "rotate",
+    #     "direction": "clockwise",
+    # }
 
-    rotate_counter_clockwise_cmd: DroneCommand = {
-        "action": "rotate",
-        "direction": "counter-clockwise",
-    }
+    # rotate_counter_clockwise_cmd: DroneCommand = {
+    #     "action": "rotate",
+    #     "direction": "counter-clockwise",
+    # }
 
+    #command_file = 'commands.json'
 
     async def cmd_handler(drone):
-        print("Arming...")
-        await txt_to_cmd(drone, arm_cmd)
-        await asyncio.sleep(3) 
-
-        # Lyft (bara en gång)
-        print("Taking off...")
-        await txt_to_cmd(drone, takeoff_cmd)
-        await asyncio.sleep(3) 
+        print("> > > Waiting for voice command")
+        last_idx = -1
         
-        # Flyg framåt
-        print("Flying...")
-        await txt_to_cmd(drone, fly_cmd)
-        await asyncio.sleep(3)
+        last_idx = -1
+    if os.path.exists(command_file):
+        with open(command_file, 'r') as f:
+            existing = json.load(f)
+        last_idx = len(existing) - 1  # skip all old commands
+        print(f"Skipping {last_idx + 1} stale commands from previous run")
 
-        # Rotate
-        print("Rotating...")
-        await txt_to_cmd(drone, rotate_counter_clockwise_cmd)
-        await asyncio.sleep(3)
+        while True:
+            if os.path.exists(command_file):
+                try:
+                    with open(command_file, 'r') as f:
+                        v_commands = json.load(f)
+                    
+                    if len(v_commands) > 0 and (len(v_commands) - 1) > last_idx:
+                        latest_command = v_commands[-1]
+                        last_idx = len(v_commands) - 1
+                        print(f"> > > New Voice Command: {latest_command}")
+                    
+                        await txt_to_cmd(drone, latest_command)
+                except (json.JSONDecodeError, Exception) as e:
+                    print(f"Error reading commands: {e}")
+            await asyncio.sleep(0.5)
 
-        print("Flying...")
-        await txt_to_cmd(drone, fly_cmd)
-        await asyncio.sleep(3)
+    await asyncio.sleep(15)
+        # print("Arming...")
+        # await txt_to_cmd(drone, arm_cmd)
+        # await asyncio.sleep(3) 
+
+        # # Lyft (bara en gång)
+        # print("Taking off...")
+        # await txt_to_cmd(drone, takeoff_cmd)
+        # await asyncio.sleep(3) 
+        
+        # # Flyg framåt
+        # print("Flying...")
+        # await txt_to_cmd(drone, fly_cmd)
+        # await asyncio.sleep(3)
+
+        # # Rotate
+        # print("Rotating...")
+        # await txt_to_cmd(drone, rotate_counter_clockwise_cmd)
+        # await asyncio.sleep(3)
+
+        # print("Flying...")
+        # await txt_to_cmd(drone, fly_cmd)
+        # await asyncio.sleep(3)
             
     # Print flight mode changes
     asyncio.ensure_future(print_flight_mode(drone))
