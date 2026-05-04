@@ -60,17 +60,28 @@ async def run():
         while True:
             if os.path.exists(command_file):
                 try:
-                    with open(command_file, 'r') as f:
+                    v_commands = []
+                    # 1. Open in 'read and write' mode to lock briefly
+                    with open(command_file, 'r+') as f:
                         v_commands = json.load(f)
-                    
-                    if len(v_commands) > 0 and (len(v_commands) - 1) > last_idx:
-                        latest_command = v_commands[-1]
-                        last_idx = len(v_commands) - 1
-                        print(f"> > > New Voice Command: {latest_command}")
-                    
-                        await txt_to_cmd(drone, latest_command)
-                except (json.JSONDecodeError, Exception) as e:
-                    print(f"Error reading commands: {e}")
+                        
+                        if v_commands:
+                            # 2. Clear the file immediately after reading
+                            f.seek(0)
+                            f.truncate()
+                            json.dump([], f) 
+                            print("> > > Commands cleared from file.")
+
+                    # 3. Process the commands we just grabbed
+                    for command in v_commands:
+                        print(f"> > > Processing Voice Command: {command}")
+                        await txt_to_cmd(drone, command)
+
+                except json.JSONDecodeError:
+                    # This happens if the file is being written to at the exact same time
+                    pass 
+                except Exception as e:
+                    print(f"Error handling commands: {e}")
             await asyncio.sleep(0.5)
 
     await asyncio.sleep(15)
