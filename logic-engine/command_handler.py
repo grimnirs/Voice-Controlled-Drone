@@ -14,7 +14,7 @@ class DroneCommand(TypedDict, total=False):
 ACTIONS = {
     "arm":str,
     "start":str,
-    "takeoff":str,
+    "take off":str,
     "land":str,
     "fly":str,
     "rotate":str,
@@ -31,7 +31,7 @@ DIRECTIONS = {
     "up":                   (0, 0, -1, 0), 
     "down":                 (0, 0, 1, 0),  
     "clockwise":            (0, 0, 0, 1),
-    "counter-clockwise":    (0, 0, 0, -1)
+    "counter clockwise":    (0, 0, 0, -1)
 }
 
 async def cmd_arm(drone, command: DroneCommand):
@@ -245,7 +245,7 @@ async def cmd_rotate(drone, command: DroneCommand):
     if rotation == "clockwise":
         target_heading = (start_yaw + degree) % 360
         direction_mult = 1
-    elif rotation == "counter-clockwise":
+    elif rotation == "counter clockwise":
         target_heading = (start_yaw - degree) % 360
         direction_mult = -1
     else: 
@@ -295,7 +295,7 @@ async def txt_to_cmd(drone, command: DroneCommand):
     elif action == "arm" or action == "start":
         await cmd_arm(drone, command)
 
-    elif action == "takeoff":
+    elif action == "take off":
        await cmd_takeoff(drone, command)
 
     elif action == "fly":

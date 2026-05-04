@@ -29,9 +29,9 @@ RE_TRIGGERS = re.compile(r'\b(drone|over)\b', re.IGNORECASE)
 # A dictionary of valid Action -> Direction pairs
 VALID_FLIGHT_COMMANDS = {
     "fly": ["forward", "backward", "left", "right", "up", "down"],
-    "rotate": ["clockwise", "counter-clockwise"],
+    "rotate": ["clockwise", "counter clockwise"],
     "land": [None],      # Land doesn't need a direction
-    "takeoff": [None],   # Takeoff doesn't need a direction
+    "take off": [None],   # Takeoff doesn't need a direction
     "stop": [None],
     "arm": [None]
 }
@@ -66,12 +66,13 @@ def parse_and_validate(text):
     elif "rotate" in text or "turn" in text: action = "rotate"
     elif "land" in text: action = "land"
     elif "stop" in text or "halt" in text: action = "stop"
+    elif "take off" in text: action = "take off"
     elif "arm" in text: action = "arm"
     
     # Identify the direction
     direction = None
     if action in ["fly", "rotate"]:
-        directions = ["forward", "backward", "left", "right", "up", "down", "clockwise", "counter-clockwise"]
+        directions = ["forward", "backward", "left", "right", "up", "down", "clockwise", "counter clockwise"]
         for d in directions:
             if d in text:
                 direction = d
@@ -82,7 +83,7 @@ def parse_and_validate(text):
     if action in VALID_FLIGHT_COMMANDS:
         allowed_directions = VALID_FLIGHT_COMMANDS[action]
         
-        if action in ["arm", "takeoff", "land", "stop"]:
+        if action in ["arm", "take off", "land", "stop"]:
             return {
                 "action":action,
                 "direction": None
@@ -111,7 +112,6 @@ def write_json(new_data, filename='../../logic-engine/commands.json'):
         print("Written to JSON file")
         file_data.append(new_data)
         file.seek(0)
-        file.truncate()
         json.dump(file_data, file, indent=4)
 
 # --- RETRIEVE INTEGER LOOP ---
@@ -222,7 +222,7 @@ def main():
                     structured = parse_and_validate(full_command)
                     if structured:
                         action = structured["action"]
-                        if action in ["arm", "takeoff", "land", "stop"]:
+                        if action in ["arm", "take off", "land", "stop", "rotate"]:
                             structured.update(
                                 {
                                     "integer" : None,
