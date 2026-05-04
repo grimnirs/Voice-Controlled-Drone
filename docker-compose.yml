@@ -28,5 +28,6 @@ services:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
       - ./logic-engine:/app
+      - ./whisper.cpp:/app/whisper.cpp
     tty: true
   
