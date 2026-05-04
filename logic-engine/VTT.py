@@ -16,9 +16,12 @@ import subprocess
 #Nästa steg: "move to the left 10 meters and then move to the left 5 meters and then move up 3 meters..."
 #Förbättra hanteringen av kommandon, just nu krävs en del timeing med samplingen
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-WHISPER_BIN = "/opt/whisper.cpp/build/bin/whisper-cli"
-WHISPER_MODEL = "/opt/whisper.cpp/models/ggml-base.en.bin"
-COMMANDS_FILE = os.path.join(BASE_DIR, "commands.json")
+#WHISPER_BIN = "/opt/whisper.cpp/build/bin/whisper-cli"
+#WHISPER_MODEL = "/opt/whisper.cpp/models/ggml-base.en.bin"
+WHISPER_BIN = "/Users/emmi/Documents/UU/kandidat/Voice-Controlled-Drone/whisper.cpp/build/bin/whisper-stream"
+WHISPER_MODEL = "/Users/emmi/Documents/UU/kandidat/Voice-Controlled-Drone/whisper.cpp/models/ggml-base.en.bin"
+#COMMANDS_FILE = os.path.join(BASE_DIR, "commands.json")
+COMMANDS_FILE = "/Users/emmi/Documents/UU/kandidat/Voice-Controlled-Drone/logic-engine/commands.json"
 
 RE_OVER = re.compile(r'\bover\b', re.IGNORECASE)
 RE_TRIGGERS = re.compile(r'\b(drone|over)\b', re.IGNORECASE)
@@ -29,7 +32,8 @@ VALID_FLIGHT_COMMANDS = {
     "rotate": ["clockwise", "counter-clockwise"],
     "land": [None],      # Land doesn't need a direction
     "takeoff": [None],   # Takeoff doesn't need a direction
-    "stop": [None]
+    "stop": [None],
+    "arm": [None]
 }
 
 # A dictionary for word to integer transcribing, since whisper.cpp sometimes writes
@@ -153,18 +157,35 @@ def main():
     is_active = False
     rolling_buffer = ""  
 
+    # proc = subprocess.Popen(
+    #     [WHISPER_BIN, "-m", WHISPER_MODEL, "--step", "500", "--length", "5000", "--vad"],
+    #     stdout=subprocess.PIPE,
+    #     stderr=subprocess.DEVNULL,  
+    #     text=True,
+    #     bufsize=1  
+    # )
+
     proc = subprocess.Popen(
-        [WHISPER_BIN, "-m", WHISPER_MODEL, "--step", "500", "--length", "5000"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,  
-        text=True,
-        bufsize=1  
-    )
+    [WHISPER_BIN, "-m", WHISPER_MODEL, 
+     "--step", "500", 
+     "--length", "5000",
+     "--keep", "200",
+     "-t", "8"],  # 8 threads, more responsive
+    stdout=subprocess.PIPE,
+    stderr=None,
+    text=True,
+    bufsize=1  
+)
 
     try:
         for raw_line in proc.stdout:
             chunk = raw_line.lower().strip()
             if not chunk:
+                continue
+
+            if any(x in chunk for x in ["[blank_audio]", "[inaudible]", "[laughter]", 
+                                  "crowd", "non-english", "foreign language",
+                                  "blank_audio", "drew?"]):
                 continue
 
             rolling_buffer += " " + chunk
@@ -191,6 +212,8 @@ def main():
 
             if is_active:
                 cleaned = RE_TRIGGERS.sub('', rolling_buffer).strip()
+                print(f"DEBUG heard: '{rolling_buffer}'")
+                print(f"DEBUG cleaned: '{cleaned}'")
 
                 if has_over:
                     full_command = " ".join(command_buffer) + " " + cleaned
@@ -206,6 +229,7 @@ def main():
                                     "unit": None
                                 }
                             )
+                            append_command(structured)
                         else:
                             words = [w.strip(string.punctuation) for w in full_command.split()]
                             integer = get_int(words)
