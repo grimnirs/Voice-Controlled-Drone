@@ -83,12 +83,11 @@ async def cmd_takeoff(drone, command: DroneCommand):
 
 async def cmd_land(drone, command: DroneCommand):
     print("-- Landing --")
-    while True:
-        try:
-            await drone.action.land()
-        except Exception as e:
-            print(f"Landing failed: {e}")
-            return
+    try:
+        await drone.action.land()
+    except Exception as e:
+        print(f"Landing failed: {e}")
+        return
 
 
 async def hold_position(drone):

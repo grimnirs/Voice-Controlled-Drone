@@ -241,6 +241,7 @@ async def test_rotate_clockwise(drone):
 
     rotate_cmd = {"action": "rotate", "direction": "clockwise"}
     await txt_to_cmd(drone, rotate_cmd)
+    await asyncio.sleep(3)
     
     # Get end heading
     async for h in drone.telemetry.heading():
@@ -266,6 +267,7 @@ async def test_rotate_counter_clockwise(drone):
 
     rotate_cmd = {"action": "rotate", "direction": "counter-clockwise"}
     await txt_to_cmd(drone, rotate_cmd)
+    await asyncio.sleep(3)
     
     # Get end heading
     async for h in drone.telemetry.heading():
@@ -291,7 +293,12 @@ async def test_land(drone):
     # Send land command
     land_cmd = {"action": "land"}
     await txt_to_cmd(drone, land_cmd)
-    await asyncio.sleep(1)
+    
+    # Wait until the drone is no longer in the air (i.e., has landed)
+    async for in_air in drone.telemetry.in_air():
+        if not in_air:
+            break
+        await asyncio.sleep(1)
 
     # Check that drone has landed after sending the command
     async for position in drone.telemetry.position():
