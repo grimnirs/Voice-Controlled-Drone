@@ -16,12 +16,9 @@ import subprocess
 #Nästa steg: "move to the left 10 meters and then move to the left 5 meters and then move up 3 meters..."
 #Förbättra hanteringen av kommandon, just nu krävs en del timeing med samplingen
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-#WHISPER_BIN = "/opt/whisper.cpp/build/bin/whisper-cli"
-#WHISPER_MODEL = "/opt/whisper.cpp/models/ggml-base.en.bin"
-WHISPER_BIN = "/Users/emmi/Documents/UU/kandidat/Voice-Controlled-Drone/whisper.cpp/build/bin/whisper-stream"
-WHISPER_MODEL = "/Users/emmi/Documents/UU/kandidat/Voice-Controlled-Drone/whisper.cpp/models/ggml-base.en.bin"
-#COMMANDS_FILE = os.path.join(BASE_DIR, "commands.json")
-COMMANDS_FILE = "/Users/emmi/Documents/UU/kandidat/Voice-Controlled-Drone/logic-engine/commands.json"
+WHISPER_BIN = os.environ.get("WHISPER_BIN", "/Users/feliciafalldin/Kanden/Voice-Controlled-Drone/logic-engine/whisper.cpp/build/bin/stream")
+WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "/Users/feliciafalldin/Kanden/Voice-Controlled-Drone/logic-engine/whisper.cpp/models/ggml-base.en.bin")
+COMMANDS_FILE = os.path.join(BASE_DIR, "commands.json")
 
 RE_OVER = re.compile(r'\bover\b', re.IGNORECASE)
 RE_TRIGGERS = re.compile(r'\b(drone|over)\b', re.IGNORECASE)
