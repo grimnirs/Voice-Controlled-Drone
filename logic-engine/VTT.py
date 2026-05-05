@@ -148,7 +148,6 @@ def append_command(data):
 # USES A COMMAND BUFFER --> LIKE A WALKIE TALKIE
 
 
-
 def main():
     command_buffer = []
     is_active = False
