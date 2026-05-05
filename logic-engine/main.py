@@ -11,23 +11,20 @@ Usage:
     docker compose up    # starts both sim and logic-engine together
 """
 
-import shared_variables
 import os
 import asyncio
 from mavsdk import System
-from mavsdk.telemetry import LandedState
-from command_handler import txt_to_cmd, DroneCommand
-from state.machine import DroneState
+from command_handler import txt_to_cmd, DroneCommand, stop_hover
+from drone_connection import connect_and_wait_for_ready
 
 
-latest_distance = 100.0 # Global variabel
+# latest_distance = 100.0 # Global variable
 
 # async def watch_distance(drone):
 #     global latest_distance
 #     print("Startar avståndssensor...")
 #     try:
 #         async for distance in drone.telemetry.distance_sensor():
-#             # MAVSDK använder .current_distance_m
 #             latest_distance = distance.current_distance_m
 #             if latest_distance < 2.0:
 #                 print(f"SENSORDATA: Hinder på {latest_distance:.2f}m")
@@ -39,49 +36,13 @@ async def run():
 
     print("Logic Engine Booting Up...")
 
-    for i in range(20, 0, -1):
+    for i in range(30, 0, -1):
         print(f"Connecting in {i} seconds...")
         await asyncio.sleep(1)
 
-    drone = System()
-    print(f"\nConnecting to MAVLink router at: {address}")
-    await drone.connect(system_address=address)
-    print("Waiting for ArduPilot heartbeat...")
+    drone = await connect_and_wait_for_ready(address)
 
-    async for state in drone.core.connection_state():
-        if state.is_connected:
-            print("\n" + "=" * 40)
-            print("✅ CONNECTED TO DRONE MAVLINK!")
-            print("=" * 40 + "\n")
-            break
 
-    async def wait_until_ready(drone):
-        async for health in drone.telemetry.health():
-            if health.is_global_position_ok and health.is_home_position_ok:
-                print("Drone ready!")
-                break
-    
-    await wait_until_ready(drone)
-
-    async def odometry_watcher(drone):
-        async for odom in drone.telemetry.odometry():
-            shared_variables.latest_odom = odom
-
-    async def landed_state_watcher(drone):
-        """Event-driven transition: LANDING → GROUNDED when the drone touches down.
-
-        Only fires the transition if the state machine is currently in LANDING,
-        otherwise ON_GROUND events during pre-arm/pre-takeoff would raise ValueError.
-        """
-        async for landed in drone.telemetry.landed_state():
-            if landed != LandedState.ON_GROUND:
-                continue
-            if shared_variables.sm.get_state() == DroneState.LANDING:
-                shared_variables.sm.transition(DroneState.GROUNDED)
-                print("[STATE] Landing complete → grounded")
-
-    asyncio.create_task(odometry_watcher(drone))
-    asyncio.create_task(landed_state_watcher(drone))
 
     arm_cmd: DroneCommand = {
         "action": "arm"
@@ -97,32 +58,55 @@ async def run():
         "integer": 10,
         "unit": "meters"
     }  
-    
-    
+
+    fly_cmd_right: DroneCommand = {
+        "action": "fly",
+        "direction": "right",
+        "integer": 10,
+        "unit": "meters"
+    }
+
+    fly_cmd_left: DroneCommand = {
+        "action": "fly",
+        "direction": "left",
+        "integer": 10,
+        "unit": "meters"
+    }
+
+    rotate_clockwise_cmd: DroneCommand = {
+        "action": "rotate",
+        "direction": "clockwise",
+    }
+
+    rotate_counter_clockwise_cmd: DroneCommand = {
+        "action": "rotate",
+        "direction": "counter-clockwise",
+    }
+
+
     async def cmd_handler(drone):
-        # asyncio.create_task(watch_distance(drone))
-        # await asyncio.sleep(40)
         print("Arming...")
         await txt_to_cmd(drone, arm_cmd)
-        await asyncio.sleep(15) 
+        await asyncio.sleep(3) 
 
         # Lyft (bara en gång)
         print("Taking off...")
         await txt_to_cmd(drone, takeoff_cmd)
-        
-        # Vänta tills den nått höjd
-        await asyncio.sleep(15) 
+        await asyncio.sleep(3) 
         
         # Flyg framåt
         print("Flying...")
         await txt_to_cmd(drone, fly_cmd)
+        await asyncio.sleep(3)
 
-        await asyncio.sleep(15)
-        
-        # # Landa efter flygningen
-        # await asyncio.sleep(5)
-        # print("Uppdrag slutfört, landar...")
-        # await txt_to_cmd(drone, "land")
+        # Rotate
+        print("Rotating...")
+        await txt_to_cmd(drone, rotate_counter_clockwise_cmd)
+        await asyncio.sleep(3)
+
+        print("Flying...")
+        await txt_to_cmd(drone, fly_cmd)
+        await asyncio.sleep(3)
             
     # Print flight mode changes
     asyncio.ensure_future(print_flight_mode(drone))
@@ -138,7 +122,6 @@ async def run():
             f"Alt: {position.relative_altitude_m:6.2f} m",
             end="\r",
         )
-
 
 async def print_flight_mode(drone):
     async for mode in drone.telemetry.flight_mode():

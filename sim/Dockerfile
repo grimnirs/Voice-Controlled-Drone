@@ -21,6 +21,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl \
     python3 python3-pip python3-dev python3-venv python3-setuptools \
     meson ninja-build \
+    xvfb \
+    libgl1-mesa-dri \
+    libglapi-mesa \
+    libosmesa6 \
+    mesa-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # ── 2. Gazebo Harmonic from OSRF repository ─────────────────
@@ -55,18 +60,27 @@ RUN USER=root Tools/environment_install/install-prereqs-ubuntu.sh -y
 # Make sure pip-installed tools are on PATH
 ENV PATH="/home/ardupilot/.local/bin:${PATH}"
 
+
 # ── 6. Build ArduCopter for SITL ────────────────────────────
 RUN modules/waf/waf-light configure --board sitl && \
     modules/waf/waf-light build --target bin/arducopter
 
 # ── 7. Clone and build ardupilot_gazebo plugin ──────────────
-RUN git clone --depth 1 \
-    https://github.com/ArduPilot/ardupilot_gazebo.git \
-    /home/ardupilot/ardupilot_gazebo
+# RUN git clone --depth 1 \
+#     https://github.com/ArduPilot/ardupilot_gazebo.git \
+#     /home/ardupilot/ardupilot_gazebo
+
+# WORKDIR /home/ardupilot/ardupilot_gazebo
+# ENV GZ_VERSION=harmonic
+# RUN mkdir build && cd build && cmake .. && make -j$(nproc)
+
+COPY --chown=ardupilot:ardupilot ardupilot_gazebo /home/ardupilot/ardupilot_gazebo
 
 WORKDIR /home/ardupilot/ardupilot_gazebo
 ENV GZ_VERSION=harmonic
-RUN mkdir build && cd build && cmake .. && make -j$(nproc)
+
+# Create the build directory and compile the plugin
+RUN mkdir -p build && cd build && cmake .. && make -j$(nproc)
 
 # ── 8. Build mavlink-router ─────────────────────────────────
 # Routes MAVLink from SITL to multiple clients (QGC + Logic Engine)
@@ -78,13 +92,16 @@ WORKDIR /home/ardupilot/mavlink-router
 RUN meson setup build . && ninja -C build && sudo ninja -C build install
 
 # ── 9. Environment variables for Gazebo ─────────────────────
+# ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build
+# ENV GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/ardupilot_gazebo/worlds
+
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/ardupilot_gazebo/worlds
 
 # ── 10. Configuration and entrypoint ────────────────────────
 WORKDIR /home/ardupilot
-COPY --chown=ardupilot:ardupilot mavlink-router.conf /home/ardupilot/mavlink-router.conf
-COPY --chown=ardupilot:ardupilot entrypoint.sh /home/ardupilot/entrypoint.sh
+COPY --chown=ardupilot:ardupilot sim/mavlink-router.conf /home/ardupilot/mavlink-router.conf
+COPY --chown=ardupilot:ardupilot sim/entrypoint.sh /home/ardupilot/entrypoint.sh
 RUN chmod +x /home/ardupilot/entrypoint.sh
 
 EXPOSE 14550

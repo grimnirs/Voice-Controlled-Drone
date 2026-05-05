@@ -31,11 +31,38 @@ if [ -d "/home/ardupilot/custom_models" ]; then
     export GZ_SIM_RESOURCE_PATH="/home/ardupilot/custom_models:${GZ_SIM_RESOURCE_PATH}"
 fi
 
+<<<<<<< HEAD
 # ── Start ArduPilot SITL FIRST ──────────────────────────────
 # Starting SITL before Gazebo avoids a race where Gazebo's
 # ArduPilotPlugin opens UDP 9002/9003 and immediately times out
 # because SITL isn't yet running, producing endless
 # "Broken ArduPilot connection, resetting motor control" warnings.
+=======
+# solves plug-in problems:
+export GZ_SIM_SYSTEM_PLUGIN_PATH=/home/ardupilot/ardupilot_gazebo/build:${GZ_SIM_SYSTEM_PLUGIN_PATH}
+export GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/ardupilot_gazebo/worlds:${GZ_SIM_RESOURCE_PATH}
+
+# ── Start Gazebo server (headless) ───────────────────────────
+echo "============================================"
+echo "  Starting Gazebo server (headless)"
+echo "  World: ${WORLD_PATH}"
+echo "============================================"
+gz sim -s -r "${WORLD_PATH}" -v 2 &
+GZ_PID=$!
+
+# Wait for Gazebo to initialize
+echo "Waiting for Gazebo to initialize..."
+sleep 10
+
+# Verify Gazebo is running
+if ! kill -0 $GZ_PID 2>/dev/null; then
+    echo "ERROR: Gazebo failed to start."
+    exit 1
+fi
+echo "Gazebo server running (PID: ${GZ_PID})"
+
+# ── Start ArduPilot SITL ────────────────────────────────────
+>>>>>>> origin/erika_testing
 echo "============================================"
 echo "  Starting ArduPilot SITL"
 echo "============================================"
@@ -43,6 +70,7 @@ cd "${ARDUPILOT_HOME}"
 
 # SITL runs with --no-mavproxy, exposing TCP 5760 internally.
 # mavlink-router will connect to this and fan out to QGC + Logic Engine.
+<<<<<<< HEAD
 # NOTE: do not put inline `#` comments after a trailing `\` — bash treats
 # the comment as a separate command and silently drops the rest of the args.
 python3 Tools/autotest/sim_vehicle.py \
@@ -61,6 +89,16 @@ python3 Tools/autotest/sim_vehicle.py \
     --param RNGFND1_MAX_CM=3000 \
     --param PRX1_TYPE=4 \
     --param PRX1_MAX=20 &
+=======
+./build/sitl/bin/arducopter \
+    --model JSON \
+    --home 59.840406,17.64578,20,0 \
+    --speedup 1 \
+    --instance 0 \
+    --sim-address=127.0.0.1 \
+    --defaults Tools/autotest/default_params/copter.parm,Tools/autotest/default_params/gazebo-iris.parm &
+
+>>>>>>> origin/erika_testing
 SITL_PID=$!
 
 echo "SITL starting (PID: ${SITL_PID})"
@@ -113,6 +151,7 @@ else
     echo "WARNING: Could not resolve host IP for QGC."
     sed -i '/\[UdpEndpoint qgc\]/,/^$/d' /home/ardupilot/mavlink-router.conf
 fi
+
 
 echo "============================================"
 echo "  Starting MAVLink Router"

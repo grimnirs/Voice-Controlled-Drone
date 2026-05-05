@@ -1,52 +1,32 @@
 services:
   # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
-  sim: 
-    build: ./sim
+  sim:    
+    build:
+      context: .
+      dockerfile: sim/Dockerfile                     
     container_name: sim
     ports:
-      - "14550:14550/udp" # MAVLink UDP — QGC auto-connects here
-      - "5790:5790"   
+      - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
+      - "14540:14540/udp"  # <--- Lägg till denna för MAVSDK
+      - "5790:5790"
     environment:
-      - GZ_WORLD=world.sdf   # Change to load a different world
-      #- GZ_SIM_RESOURCE_PATH=/home/ardupilot/custom_models
-      - GZ_SIM_RESOURCE_PATH=/home/ardupilot/ardupilot_gazebo/models:/home/ardupilot/custom_models
+      - GZ_WORLD=iris_warehouse.sdf   # Change to load a different world
     volumes:
+      - ./sim/entrypoint.sh:/home/ardupilot/entrypoint.sh
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
       - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
     tty: true
     stdin_open: true
 
-    healthcheck:
-      test: ["CMD-SHELL", "timeout 1s bash -c '</dev/tcp/127.0.0.1/5790' || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    
-
-# -- Vision Injector ---------------------------------
-  vision-injector:
-    build: ./vision_efk
-    container_name: vision-injector
+  # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
+  logic-engine:
+    build: ./logic-engine                   
+    container_name: logic-engine
     depends_on:
       - sim
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
-    tty: true
-    restart: unless-stopped
-    #command: python vision_injector.py # ??
-  
-  # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
-  logic-engine:
-    build: ./logic-engine
-    container_name: logic-engine
-    depends_on:
-      sim:
-        condition: service_healthy
-    environment:
-      - SITL_ADDRESS=tcpout://sim:5790
     volumes:
-      - ./logic-engine:/app    
+      - ./logic-engine:/app
     tty: true
-
-    
+  
