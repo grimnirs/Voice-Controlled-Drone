@@ -111,8 +111,13 @@ echo "  QGC:          UDP 14550 (auto-connect)"
 echo "  Logic Engine: TCP 5790 (Docker network)"
 echo "============================================"
 
+mkdir -p /shared && chmod 777 /shared
+echo "Starting sensor bridge..."
+python3 /home/ardupilot/sensor_bridge.py &
+SENSOR_PID=$!
+
 # Wait for any process to exit
-wait -n $GZ_PID $SITL_PID $ROUTER_PID
+wait -n $GZ_PID $SITL_PID $ROUTER_PID $SENSOR_PID
 echo "A process exited. Shutting down..."
-kill $GZ_PID $SITL_PID $ROUTER_PID 2>/dev/null
+kill $GZ_PID $SITL_PID $ROUTER_PID $SENSOR_PID 2>/dev/null
 wait

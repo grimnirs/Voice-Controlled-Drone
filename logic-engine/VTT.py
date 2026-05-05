@@ -211,8 +211,8 @@ def main():
 
             if is_active:
                 cleaned = RE_TRIGGERS.sub('', rolling_buffer).strip()
-                print(f"DEBUG heard: '{rolling_buffer}'")
-                print(f"DEBUG cleaned: '{cleaned}'")
+                # print(f"DEBUG heard: '{rolling_buffer}'")
+                # print(f"DEBUG cleaned: '{cleaned}'")
 
                 if has_over:
                     full_command = " ".join(command_buffer) + " " + cleaned

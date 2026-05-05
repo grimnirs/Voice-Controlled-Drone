@@ -2,6 +2,7 @@ from mavsdk.offboard import VelocityBodyYawspeed
 import math
 from typing import TypedDict, Optional
 import asyncio
+from collision_handler import is_obstacle_forward, get_forward_distance
  
 _hover_task: Optional[asyncio.Task] = None
 
@@ -42,13 +43,6 @@ async def cmd_arm(drone, command: DroneCommand):
         else:
             print("Health not ready...")
             await asyncio.sleep(2)
-
-    print("-- Switching to GUIDED mode --")
-    try:
-        await drone.action.set_flight_mode_guided()
-        await asyncio.sleep(1)
-    except Exception as e:
-        print(f"Mode switch warning: {e}")
 
     print("-- Arming motors --")
     while True:
@@ -155,47 +149,24 @@ async def cmd_fly(drone, command:DroneCommand):
 
     start_xyz = await get_local_xyz_m(drone)
     current_altitude = -start_xyz[2]
-
-    # if direction_key == "down":
-    #     max_allowed = current_altitude - MIN_ALTITUDE
-    #     if integer > max_allowed:
-    #         print(f"Clamping descent from {integer}m to {max_allowed:.2f}m")
-    #         integer = max(0, max_allowed)
-
-    # # Stop UP if too high
-    # if direction_key == "up":
-    #     if current_altitude >= MAX_ALTITUDE:
-    #         print("Max altitude reached")
-    #         return
     
     try:
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await drone.offboard.start()
-        #safety_margin = velocity
-        #start = asyncio.get_event_loop().time() 
+        await drone.offboard.start() 
 
         while True: 
+            if direction_key == "forward" and is_obstacle_forward():
+                print(f"EMERGENCY STOPPING! Drone is {get_forward_distance():.2f}m from an obstacle!")
+                break
+            
             current_xyz = await get_local_xyz_m(drone)
             if current_xyz is not None:
                 if command.get("direction") == "up":
-                    # max_allowed = MAX_ALTITUDE - current_altitude
-                    # if current_altitude >= MAX_ALTITUDE:
-                    #     print("Max altitude reached")
-                    #     return
-                    # elif integer >= max_allowed:
-                    #     print("Already at max altitude, cannot descend further")
-                    #     return
                     travelled = abs(current_xyz[2] - start_xyz[2])
 
                 elif command.get("direction") == "down":
-                    # max_allowed = current_altitude - MIN_ALTITUDE
-                    # if integer > max_allowed:
-                    #     integer = max(0, max_allowed)
-                    # if integer <= 0:
-                    #     print("Already at minimum altitude, cannot descend further")
-                    #     return
-                    
                     travelled = abs(current_xyz[2] - start_xyz[2])
+                
                 else:
                     travelled = math.sqrt(
                         (current_xyz[0] - start_xyz[0]) ** 2 +
@@ -261,7 +232,7 @@ async def cmd_rotate(drone, command: DroneCommand):
         
             diff_from_target_degree = (target_heading - current_heading + 180) % 360 - 180
 
-            if abs(diff_from_target_degree) < 2.0:
+            if abs(diff_from_target_degree) < 5.0:  # helst 2 men 5 om datorn är långsam när testerna körs
                 print(f"Target reached at {current_heading:.1f}!")
                 break
 

@@ -4,6 +4,7 @@ from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand, stop_hover
 from drone_connection import connect_and_wait_for_ready
 import json
+from collision_handler import watch_distance
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 command_file = os.path.join(BASE_DIR, 'commands.json')
@@ -44,6 +45,8 @@ async def run():
         await asyncio.sleep(1)
 
     drone = await connect_and_wait_for_ready(address)
+
+    asyncio.create_task(watch_distance())
 
     asyncio.ensure_future(print_flight_mode(drone))
     asyncio.ensure_future(cmd_handler(drone))

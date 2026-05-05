@@ -23,7 +23,8 @@ RUN pip install --no-cache-dir \
     pymavlink \
     sounddevice \
     pytest \
-    pytest-asyncio
+    pytest-asyncio \
+    colorama
 
 WORKDIR /app
 COPY . .
