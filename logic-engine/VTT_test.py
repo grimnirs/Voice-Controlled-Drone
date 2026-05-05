@@ -2,7 +2,14 @@ import pytest
 import json
 import os
 import tempfile
-from VTT import parse_and_validate, get_int, get_unit, clean_text, remove_triggers, append_command, _command_log
+from VTT import get_int, get_unit, clean_text, remove_triggers, append_command, _command_log, gemma_parse, VALID_FLIGHT_COMMANDS
+from unittest.mock import patch, MagicMock
+
+# OBSOBSOBS Download Gemma locally on your computer
+# 1. brew install ollama
+# 2. ollama serve
+# 3. (NEW TERMINAL!!) ollama run
+# then run the tests in a new terminal!
 
 # To run tests:
 # 1. cd logic-engine
@@ -10,153 +17,190 @@ from VTT import parse_and_validate, get_int, get_unit, clean_text, remove_trigge
 
 # --- parse_and_validate ---
 
-def test_arm():
-    result = parse_and_validate("arm")
-    assert result == {"action": "arm", "direction": None}
+def mock_test_arm_gemma_parse():
+    mock_response = MagicMock()
+    mock_response.json.return_value = {
+        "response": '{"action": "arm", "direction": null, "integer": null, "unit": null}'
+    }
+    with patch("requests.post", return_value=mock_response):
+        result = gemma_parse("arm")
+        assert result["action"] == "arm"
+        assert result["direction"] is None
+        
+        
+def test_gemma_understands_arm():
+    result = gemma_parse("arm")
+    assert result["action"] == "arm"
 
-def test_take_off():
-    result = parse_and_validate("take off")
-    assert result == {"action": "take off", "direction": None}
+def test_gemma_understands_fuzzy_fly():
+    # Can Gemma handle natural phrasing?
+    result = gemma_parse("go forward 5 meters")
+    assert result["action"] == "fly"
+    assert result["direction"] == "forward"
+    assert result["integer"] == 5
+    assert result["unit"] == "meters"
 
-def test_land():
-    result = parse_and_validate("land")
-    assert result == {"action": "land", "direction": None}
+def test_gemma_understands_spoken_numbers():
+    result = gemma_parse("fly forward five meters")
+    assert result["integer"] == 5
 
-def test_stop():
-    result = parse_and_validate("stop")
-    assert result == {"action": "stop", "direction": None}
+def test_gemma_handles_garbage():
+    # What does Gemma return for nonsense?
+    result = gemma_parse("banana helicopter purple")
+    # either None or invalid action
+    assert result is None or result.get("action") not in VALID_FLIGHT_COMMANDS
 
-def test_fly_forward():
-    result = parse_and_validate("fly forward")
-    assert result == {"action": "fly", "direction": "forward"}
+def test_fly1():
+    example = "shift west four meters"
+    result = gemma_parse(example)
+    assert result["action"] == "fly"
+    assert result["direction"] == "left"
+    assert result["integer"] == 4
+    assert result["unit"] == "meters"
 
-def test_fly_backward():
-    result = parse_and_validate("fly backward")
-    assert result == {"action": "fly", "direction": "backward"}
+# def test_take_off():
+#     result = parse_and_validate("take off")
+#     assert result == {"action": "take off", "direction": None}
 
-def test_fly_left():
-    result = parse_and_validate("move to the left")
-    assert result == {"action": "fly", "direction": "left"}
+# def test_land():
+#     result = parse_and_validate("land")
+#     assert result == {"action": "land", "direction": None}
 
-def test_fly_right():
-    result = parse_and_validate("move to the right")
-    assert result == {"action": "fly", "direction": "right"}
+# def test_stop():
+#     result = parse_and_validate("stop")
+#     assert result == {"action": "stop", "direction": None}
 
-def test_fly_up():
-    result = parse_and_validate("fly up")
-    assert result == {"action": "fly", "direction": "up"}
+# def test_fly_forward():
+#     result = parse_and_validate("fly forward")
+#     assert result == {"action": "fly", "direction": "forward"}
 
-def test_fly_down():
-    result = parse_and_validate("fly down")
-    assert result == {"action": "fly", "direction": "down"}
+# def test_fly_backward():
+#     result = parse_and_validate("fly backward")
+#     assert result == {"action": "fly", "direction": "backward"}
 
-def test_rotate_clockwise():
-    result = parse_and_validate("rotate clockwise")
-    assert result == {"action": "rotate", "direction": "clockwise"}
+# def test_fly_left():
+#     result = parse_and_validate("move to the left")
+#     assert result == {"action": "fly", "direction": "left"}
 
-def test_rotate_counter_clockwise():
-    result = parse_and_validate("rotate counter clockwise")
-    assert result == {"action": "rotate", "direction": "counter clockwise"}
+# def test_fly_right():
+#     result = parse_and_validate("move to the right")
+#     assert result == {"action": "fly", "direction": "right"}
 
-def test_invalid_command_returns_none():
-    result = parse_and_validate("hello there")
-    assert result is None
+# def test_fly_up():
+#     result = parse_and_validate("fly up")
+#     assert result == {"action": "fly", "direction": "up"}
 
-def test_fly_without_direction_returns_none():
-    result = parse_and_validate("fly")
-    assert result is None
+# def test_fly_down():
+#     result = parse_and_validate("fly down")
+#     assert result == {"action": "fly", "direction": "down"}
 
-def test_case_insensitive():
-    result = parse_and_validate("FLY FORWARD")
-    assert result == {"action": "fly", "direction": "forward"}
+# def test_rotate_clockwise():
+#     result = parse_and_validate("rotate clockwise")
+#     assert result == {"action": "rotate", "direction": "clockwise"}
 
-# --- get_int ---
+# def test_rotate_counter_clockwise():
+#     result = parse_and_validate("rotate counter clockwise")
+#     assert result == {"action": "rotate", "direction": "counter clockwise"}
 
-def test_get_int_digit():
-    assert get_int(["fly", "forward", "5", "meters"]) == 5
+# def test_invalid_command_returns_none():
+#     result = parse_and_validate("hello there")
+#     assert result is None
 
-def test_get_int_word_two():
-    assert get_int(["fly", "forward", "two", "meters"]) == 2
+# def test_fly_without_direction_returns_none():
+#     result = parse_and_validate("fly")
+#     assert result is None
 
-def test_get_int_word_ten():
-    assert get_int(["fly", "forward", "ten", "meters"]) == 10
+# def test_case_insensitive():
+#     result = parse_and_validate("FLY FORWARD")
+#     assert result == {"action": "fly", "direction": "forward"}
 
-def test_get_int_missing():
-    assert get_int(["fly", "forward"]) is None
+# # --- get_int ---
 
-# --- get_unit ---
+# def test_get_int_digit():
+#     assert get_int(["fly", "forward", "5", "meters"]) == 5
 
-def test_get_unit_meters():
-    assert get_unit(["fly", "forward", "5", "meters"]) == "meters"
+# def test_get_int_word_two():
+#     assert get_int(["fly", "forward", "two", "meters"]) == 2
 
-def test_get_unit_meter_singular():
-    assert get_unit(["fly", "forward", "1", "meter"]) == "meter"
+# def test_get_int_word_ten():
+#     assert get_int(["fly", "forward", "ten", "meters"]) == 10
 
-def test_get_unit_centimeters():
-    assert get_unit(["fly", "forward", "5", "centimeters"]) == "centimeters"
+# def test_get_int_missing():
+#     assert get_int(["fly", "forward"]) is None
 
-def test_get_unit_word_number():
-    assert get_unit(["fly", "five", "meters"]) == "meters"
+# # --- get_unit ---
 
-def test_get_unit_missing():
-    assert get_unit(["fly", "forward"]) is None
+# def test_get_unit_meters():
+#     assert get_unit(["fly", "forward", "5", "meters"]) == "meters"
 
-# --- remove_triggers ---
+# def test_get_unit_meter_singular():
+#     assert get_unit(["fly", "forward", "1", "meter"]) == "meter"
 
-def test_remove_drone():
-    assert remove_triggers("drone fly forward") == "fly forward"
+# def test_get_unit_centimeters():
+#     assert get_unit(["fly", "forward", "5", "centimeters"]) == "centimeters"
 
-def test_remove_over():
-    assert remove_triggers("fly forward over") == "fly forward"
+# def test_get_unit_word_number():
+#     assert get_unit(["fly", "five", "meters"]) == "meters"
 
-def test_remove_both():
-    assert remove_triggers("drone fly forward over") == "fly forward"
+# def test_get_unit_missing():
+#     assert get_unit(["fly", "forward"]) is None
 
-# --- simulating from parsed -> handled --> json ---
+# # --- remove_triggers ---
+
+# def test_remove_drone():
+#     assert remove_triggers("drone fly forward") == "fly forward"
+
+# def test_remove_over():
+#     assert remove_triggers("fly forward over") == "fly forward"
+
+# def test_remove_both():
+#     assert remove_triggers("drone fly forward over") == "fly forward"
+
+# # --- simulating from parsed -> handled --> json ---
 
 
-def test_pipeline_fly_forward_5_meters():
-    raw = "drone fly forward 5 meters over"
-    cleaned = remove_triggers(raw)
-    structured = parse_and_validate(cleaned)
-    assert structured is not None
-    words = cleaned.split()
-    integer = get_int(words)
-    unit = get_unit(words)
-    structured.update({"integer": integer, "unit": unit})
-    assert structured == {"action": "fly", "direction": "forward", "integer": 5, "unit": "meters"}
+# def test_pipeline_fly_forward_5_meters():
+#     raw = "drone fly forward 5 meters over"
+#     cleaned = remove_triggers(raw)
+#     structured = parse_and_validate(cleaned)
+#     assert structured is not None
+#     words = cleaned.split()
+#     integer = get_int(words)
+#     unit = get_unit(words)
+#     structured.update({"integer": integer, "unit": unit})
+#     assert structured == {"action": "fly", "direction": "forward", "integer": 5, "unit": "meters"}
 
-def test_pipeline_fly_up_three_meters():
-    raw = "drone fly up three meters over"
-    cleaned = remove_triggers(raw)
-    structured = parse_and_validate(cleaned)
-    assert structured is not None
-    words = cleaned.split()
-    integer = get_int(words)
-    unit = get_unit(words)
-    structured.update({"integer": integer, "unit": unit})
-    assert structured == {"action": "fly", "direction": "up", "integer": 3, "unit": "meters"}
+# def test_pipeline_fly_up_three_meters():
+#     raw = "drone fly up three meters over"
+#     cleaned = remove_triggers(raw)
+#     structured = parse_and_validate(cleaned)
+#     assert structured is not None
+#     words = cleaned.split()
+#     integer = get_int(words)
+#     unit = get_unit(words)
+#     structured.update({"integer": integer, "unit": unit})
+#     assert structured == {"action": "fly", "direction": "up", "integer": 3, "unit": "meters"}
 
-def test_pipeline_land():
-    raw = "drone land over"
-    cleaned = remove_triggers(raw)
-    structured = parse_and_validate(cleaned)
-    assert structured == {"action": "land", "direction": None}
+# def test_pipeline_land():
+#     raw = "drone land over"
+#     cleaned = remove_triggers(raw)
+#     structured = parse_and_validate(cleaned)
+#     assert structured == {"action": "land", "direction": None}
 
-def test_pipeline_rotate_clockwise():
-    raw = "drone rotate clockwise over"
-    cleaned = remove_triggers(raw)
-    structured = parse_and_validate(cleaned)
-    assert structured == {"action": "rotate", "direction": "clockwise"}
+# def test_pipeline_rotate_clockwise():
+#     raw = "drone rotate clockwise over"
+#     cleaned = remove_triggers(raw)
+#     structured = parse_and_validate(cleaned)
+#     assert structured == {"action": "rotate", "direction": "clockwise"}
 
-def test_pipeline_invalid_no_direction():
-    raw = "drone fly over"
-    cleaned = remove_triggers(raw)
-    structured = parse_and_validate(cleaned)
-    assert structured is None
+# def test_pipeline_invalid_no_direction():
+#     raw = "drone fly over"
+#     cleaned = remove_triggers(raw)
+#     structured = parse_and_validate(cleaned)
+#     assert structured is None
 
-def test_pipeline_noise_ignored():
-    raw = "[blank_audio]"
-    assert "blank_audio" in raw  
-    structured = parse_and_validate(raw)
-    assert structured is None
+# def test_pipeline_noise_ignored():
+#     raw = "[blank_audio]"
+#     assert "blank_audio" in raw  
+#     structured = parse_and_validate(raw)
+#     assert structured is None

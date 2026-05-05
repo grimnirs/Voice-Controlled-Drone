@@ -1,13 +1,13 @@
 services:
   # ── Simulation: ArduPilot SITL + Gazebo Harmonic + MAVLink Router ──
-  sim:    
+  sim:
     build:
       context: .
-      dockerfile: sim/Dockerfile                     
+      dockerfile: sim/Dockerfile
     container_name: sim
     ports:
       - "14550:14550/udp"   # MAVLink UDP — QGC auto-connects here
-      - "14540:14540/udp"  # <--- Lägg till denna för MAVSDK
+      - "14540:14540/udp"   # MAVSDK
       - "5790:5790"
     environment:
       - GZ_WORLD=iris_warehouse.sdf   # Change to load a different world
@@ -20,7 +20,7 @@ services:
 
   # ── Logic Engine: Python + MAVSDK ─────────────────────────────────
   logic-engine:
-    build: ./logic-engine                   
+    build: ./logic-engine
     container_name: logic-engine
     depends_on:
       - sim
@@ -29,7 +29,9 @@ services:
     privileged: true
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
+      - WHISPER_BIN=/opt/whisper.cpp/build/bin/stream
+      - WHISPER_MODEL=/opt/whisper.cpp/models/ggml-base.en.bin
+      - OLLAMA_HOST=http://host.docker.internal:11434
     volumes:
       - ./logic-engine:/app
     tty: true
-  
