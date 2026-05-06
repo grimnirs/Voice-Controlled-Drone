@@ -3,6 +3,7 @@ import asyncio
 import pytest_asyncio
 import os
 from mavsdk import System
+from mavsdk.offboard import PositionNedYaw
 from command_handler import txt_to_cmd
 from drone_connection import connect_and_wait_for_ready
 from collision_handler import (
@@ -12,6 +13,33 @@ from collision_handler import (
     COLLISION_THRESHOLD,
 )
 import math
+
+
+RESET_TIMEOUT = 15  # seconds
+
+
+async def reset_to_origin(drone):
+    """Fly drone back to spawn @ 3m altitude, yaw 0. Wait until within 0.5m."""
+    print("-- Resetting to origin --")
+    await drone.offboard.set_position_ned(PositionNedYaw(0.0, 0.0, -3.0, 0.0))
+    try:
+        await drone.offboard.start()
+    except Exception:
+        pass  # already started
+
+    deadline = asyncio.get_event_loop().time() + RESET_TIMEOUT
+    err = float("inf")
+    while asyncio.get_event_loop().time() < deadline:
+        async for p in drone.telemetry.position_velocity_ned():
+            n, e, d = p.position.north_m, p.position.east_m, p.position.down_m
+            err = math.sqrt(n*n + e*e + (d + 3.0)**2)
+            print(f"reset err={err:.2f}m  pos=({n:.2f},{e:.2f},{-d:.2f})")
+            break
+        if err < 0.5:
+            print("✅ Reset complete")
+            return
+        await asyncio.sleep(0.5)
+    print(f"⚠️ Reset timed out at err={err:.2f}m")
 
 # To run tests:
 # 1. docker compose up -d
@@ -113,6 +141,8 @@ async def test_forward_sensor(drone):
         assert in_air, "Drone was not in air!"
         break
 
+    await reset_to_origin(drone)
+
     # checka sensor
     before = get_forward_distance()
     print(f"forward before: {before}")
@@ -139,6 +169,8 @@ async def test_up_sensor(drone):
     async for in_air in drone.telemetry.in_air():
         assert in_air, "Drone was not in air!"
         break
+
+    await reset_to_origin(drone)
 
     # checka sensor
     before = get_up_distance()
@@ -167,6 +199,8 @@ async def test_down_sensor(drone):
     async for in_air in drone.telemetry.in_air():
         assert in_air, "Drone was not in air!"
         break
+
+    await reset_to_origin(drone)
 
     # checka sensor
     before = get_down_distance()
