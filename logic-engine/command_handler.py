@@ -2,7 +2,7 @@ from mavsdk.offboard import VelocityBodyYawspeed
 import math
 from typing import TypedDict, Optional
 import asyncio
-from collision_handler import is_obstacle_forward, get_forward_distance
+from collision_handler import is_obstacle_forward, get_forward_distance, is_obstacle_up, get_up_distance, get_down_distance, is_obstacle_down, enable_sensors, disable_sensors
  
 _hover_task: Optional[asyncio.Task] = None
 
@@ -49,6 +49,7 @@ async def cmd_arm(drone, command: DroneCommand):
         try:
             await drone.action.arm()
             print("✅ Armed!")
+            disable_sensors()
             break
         except Exception as e:
             print(f"Arming failed: {e}")
@@ -63,7 +64,7 @@ async def cmd_takeoff(drone, command: DroneCommand):
             break
         else:
             print("Waiting for arm...")
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
 
     print("-- Takeoff --")
     try:
@@ -73,6 +74,8 @@ async def cmd_takeoff(drone, command: DroneCommand):
         await asyncio.sleep(8)
     except Exception as e:
         print(f"Takeoff failed: {e}")
+    
+    enable_sensors()
 
 
 async def cmd_land(drone, command: DroneCommand):
@@ -156,7 +159,15 @@ async def cmd_fly(drone, command:DroneCommand):
 
         while True: 
             if direction_key == "forward" and is_obstacle_forward():
-                print(f"EMERGENCY STOPPING! Drone is {get_forward_distance():.2f}m from an obstacle!")
+                print(f"<<<EMERGENCY STOPPING>>> Drone is {get_forward_distance():.2f}m from an obstacle!")
+                break
+
+            if direction_key == "up" and is_obstacle_up():
+                print(f"<<<EMERGENCY STOPPING>>> Drone is {get_up_distance():.2f}m from an obstacle!")
+                break
+
+            if direction_key == "down" and is_obstacle_down():
+                print(f"<<<EMERGENCY STOPPING>>> Drone is {get_down_distance():.2f}m from the ground!")
                 break
             
             current_xyz = await get_local_xyz_m(drone)
@@ -179,8 +190,21 @@ async def cmd_fly(drone, command:DroneCommand):
             await asyncio.sleep(0.1)
 
         # Hold hover briefly, then return so next command can run.
+        if command.get("direction") == "up":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, abs(down), 0.0))
+            await asyncio.sleep(0.8)
+        elif command.get("direction") == "down":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, -down, 0.0))
+            await asyncio.sleep(1.2)
+        elif command.get("direction") == "forward":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(-fwd, 0.0, 0.0, 0.0))
+            await asyncio.sleep(0.3)
+        elif command.get("direction") == "backward":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, 0.0, 0.0, 0.0))
+            await asyncio.sleep(0.3)
+
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.05)
         print("Flight complete!")
         await start_hover(drone)
         return

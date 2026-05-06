@@ -1,11 +1,15 @@
 #!/bin/bash
 set -e
 
+
+
 # ── Configuration ────────────────────────────────────────────
 WORLD=${GZ_WORLD:-iris_runway.sdf}
 ARDUPILOT_HOME=/home/ardupilot/ardupilot
 GAZEBO_WORLDS=/home/ardupilot/ardupilot_gazebo/worlds
 CUSTOM_WORLDS=/home/ardupilot/custom_worlds
+
+
 
 # Resolve world file path: check custom worlds first, then built-in
 if [ -f "${CUSTOM_WORLDS}/${WORLD}" ]; then

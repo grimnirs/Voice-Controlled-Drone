@@ -24,7 +24,8 @@ RUN pip install --no-cache-dir \
     sounddevice \
     pytest \
     pytest-asyncio \
-    colorama
+    colorama \
+    numpy
 
 WORKDIR /app
 COPY . .

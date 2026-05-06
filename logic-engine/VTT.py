@@ -188,6 +188,9 @@ def main():
                 continue
 
             rolling_buffer += " " + chunk
+            if not is_active and len(rolling_buffer) > 50:
+                rolling_buffer = rolling_buffer[-20:]
+            
             rolling_buffer = rolling_buffer.strip()
 
             has_drone = "drone" in rolling_buffer and not is_active
