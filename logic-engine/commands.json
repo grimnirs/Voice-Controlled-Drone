@@ -1,1 +1,32 @@
-[]
+[
+    {
+        "action": "arm",
+        "direction": null,
+        "integer": null,
+        "unit": null
+    },
+    {
+        "action": "take off",
+        "direction": null,
+        "integer": null,
+        "unit": null
+    },
+    {
+        "action": "arm",
+        "direction": null,
+        "integer": null,
+        "unit": null
+    },
+    {
+        "action": "arm",
+        "direction": null,
+        "integer": null,
+        "unit": null
+    },
+    {
+        "action": "take off",
+        "direction": null,
+        "integer": null,
+        "unit": null
+    }
+]
