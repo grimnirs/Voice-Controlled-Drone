@@ -5,6 +5,7 @@ import os
 import string
 import re
 import subprocess
+import time
 
 
 #tanken är att vi ska importa 
@@ -32,6 +33,21 @@ VALID_FLIGHT_COMMANDS = {
     "stop": [None],
     "arm": [None]
 }
+SYNONYM_MAP = {
+    "go": "fly",
+    "move": "fly",
+    "travel": "fly",
+    "turn": "rotate",
+    "spin": "rotate",
+    "halt": "stop",
+    "kill": "stop",
+    "ascend": "up",
+    "descend": "down",
+    "forwards": "forward",
+    "backwards": "backward",
+    "clockwise": "clockwise",
+    "counter-clockwise": "counter clockwise"
+}
 
 # A dictionary for word to integer transcribing, since whisper.cpp sometimes writes
 # 2 as "two"
@@ -50,6 +66,27 @@ WORD_TO_DIGIT = {
 
 # A list of valid units to use in commands
 VALID_UNITS = ["millimeters", "centimeters", "meters", "meter"]
+
+COMMAND_WORDS = set()
+for action, directions in VALID_FLIGHT_COMMANDS.items():
+    for word in action.split():
+        COMMAND_WORDS.add(word)
+    for d in (directions or []):
+        if d:
+            for word in d.split():
+                COMMAND_WORDS.add(word)
+
+COMMAND_WORDS |= set(SYNONYM_MAP.keys())
+COMMAND_WORDS |= set(WORD_TO_DIGIT.keys())
+COMMAND_WORDS |= {"drone", "over", "stop", "meters", "meter", "centimeters", "millimeters"}
+COMMAND_WORDS |= {str(i) for i in range(100)}
+
+NOISE_PATTERNS = [
+    r'\[blank_audio\]', r'\[inaudible\]', r'\[laughter\]',
+    r'\[applause\]', r'crowd\s*\w*', r'non-english',
+    r'foreign language', r'blank_audio'
+]
+RE_NOISE = re.compile('|'.join(NOISE_PATTERNS), re.IGNORECASE)
 
 _command_log = []
 
@@ -144,34 +181,34 @@ def append_command(data):
     _command_log.append(data)
     flush_to_disk()
 
+# -- synonyms ---
+def normalize_text(words):
+    """Replaces synonyms with formal command keys."""
+    return [SYNONYM_MAP.get(w, w) for w in words]
+
 # --- MAIN STREAMING LOOP ---
 # USES A COMMAND BUFFER --> LIKE A WALKIE TALKIE
-
 
 def main():
     command_buffer = []
     is_active = False
     rolling_buffer = ""  
 
-    # proc = subprocess.Popen(
-    #     [WHISPER_BIN, "-m", WHISPER_MODEL, "--step", "500", "--length", "5000", "--vad"],
-    #     stdout=subprocess.PIPE,
-    #     stderr=subprocess.DEVNULL,  
-    #     text=True,
-    #     bufsize=1  
-    # )
+    # Create a whitelist for the iterative discard logic
+    WHITELIST = set(VALID_FLIGHT_COMMANDS.keys()) | set(SYNONYM_MAP.keys()) | \
+                {"drone", "over", "meters", "meter", "centimeters", "millimeters"}
 
     proc = subprocess.Popen(
-    [WHISPER_BIN, "-m", WHISPER_MODEL, 
-     "--step", "500", 
-     "--length", "5000",
-     "--keep", "200",
-     "-t", "8"],  # 8 threads, more responsive
-    stdout=subprocess.PIPE,
-    stderr=None,
-    text=True,
-    bufsize=1  
-)
+        [WHISPER_BIN, "-m", WHISPER_MODEL, 
+         "--step", "500", "--length", "5000",
+         "--keep", "0", # Set to 0 to prevent audio ghosting/repetition in noise
+         "-t", "8"],
+        stdout=subprocess.PIPE,
+        stderr=None,
+        text=True,
+        bufsize=1,
+        cwd=os.path.dirname(WHISPER_BIN)
+    )
 
     try:
         for raw_line in proc.stdout:
@@ -179,32 +216,45 @@ def main():
             if not chunk:
                 continue
 
-            if any(x in chunk for x in ["[blank_audio]", "[inaudible]", "[laughter]", 
-                                  "crowd", "non-english", "foreign language",
-                                  "blank_audio", "drew?"]):
+            # 1. Strip noise patterns from chunk
+            chunk = RE_NOISE.sub('', chunk).strip()
+            if not chunk:
                 continue
 
+            # 2. Normalize synonyms
+            chunk_words = [w.strip(string.punctuation) for w in chunk.split()]
+            chunk_words = normalize_text(chunk_words)
+            chunk = " ".join(chunk_words)
+
+            # 3. Append to buffer
             rolling_buffer += " " + chunk
             rolling_buffer = rolling_buffer.strip()
 
+            # 4. Continuously prune buffer to only valid command words
+            filtered_words = [
+                w for w in rolling_buffer.split()
+                if w.strip(string.punctuation) in COMMAND_WORDS
+            ]
+            rolling_buffer = " ".join(filtered_words)
+
             has_drone = "drone" in rolling_buffer and not is_active
             has_over  = bool(RE_OVER.search(rolling_buffer))
-            has_stop  = "stop." in rolling_buffer
+            has_stop  = "stop" in rolling_buffer
 
-            if has_stop:
+            if has_stop and not is_active:
+                # Ignore "stop" outside active session
+                pass
+
+            if has_stop and is_active:
                 is_active = False
                 rolling_buffer = ""
-                command_buffer = []
                 print(">>> Force stopped")
-                break
+                continue
 
             if has_drone and not is_active:
                 print(">>> Activated, listening...")
                 is_active = True
-                command_buffer = []
-                # Trim everything before "drone" so we don't carry old noise
-                drone_idx = rolling_buffer.index("drone")
-                rolling_buffer = rolling_buffer[drone_idx:]
+                rolling_buffer = "drone"  # Hard reset, no noise carried forward
 
             if is_active:
                 cleaned = RE_TRIGGERS.sub('', rolling_buffer).strip()
@@ -212,25 +262,16 @@ def main():
                 print(f"DEBUG cleaned: '{cleaned}'")
 
                 if has_over:
-                    full_command = " ".join(command_buffer) + " " + cleaned
-                    full_command = full_command.strip()
-
-                    structured = parse_and_validate(full_command)
+                    structured = parse_and_validate(cleaned)
                     if structured:
                         action = structured["action"]
                         if action in ["arm", "take off", "land", "stop", "rotate"]:
-                            structured.update(
-                                {
-                                    "integer" : None,
-                                    "unit": None
-                                }
-                            )
+                            structured.update({"integer": None, "unit": None})
                             append_command(structured)
                         else:
-                            words = [w.strip(string.punctuation) for w in full_command.split()]
+                            words = [w.strip(string.punctuation) for w in cleaned.split()]
                             integer = get_int(words)
                             unit = get_unit(words)
-                        
 
                             if integer and unit:
                                 structured.update({"integer": integer, "unit": unit})
@@ -241,21 +282,14 @@ def main():
                     else:
                         print("DEBUG: Invalid command")
 
-                    # Reset everything after a completed command
                     is_active = False
-                    command_buffer = []
-                    rolling_buffer = ""  # Fresh start after "over"
-                else:
-                    if cleaned:
-                        command_buffer.append(cleaned)
-                    words = rolling_buffer.split()
-                    if len(words) > 20:
-                        rolling_buffer = " ".join(words[-20:])
+                    rolling_buffer = ""
 
     except KeyboardInterrupt:
         proc.terminate()
         flush_to_disk()
         print("Exited cleanly")
+
 
 if __name__ == "__main__":
     main()
