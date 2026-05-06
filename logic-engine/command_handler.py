@@ -158,15 +158,15 @@ async def cmd_fly(drone, command:DroneCommand):
         await drone.offboard.start() 
 
         while True: 
-            if direction_key == "forward" and is_obstacle_forward():
+            if direction_key == "forward" and is_obstacle_forward(velocity):
                 print(f"<<<EMERGENCY STOPPING>>> Drone is {get_forward_distance():.2f}m from an obstacle!")
                 break
 
-            if direction_key == "up" and is_obstacle_up():
+            if direction_key == "up" and is_obstacle_up(velocity):
                 print(f"<<<EMERGENCY STOPPING>>> Drone is {get_up_distance():.2f}m from an obstacle!")
                 break
 
-            if direction_key == "down" and is_obstacle_down():
+            if direction_key == "down" and is_obstacle_down(velocity):
                 print(f"<<<EMERGENCY STOPPING>>> Drone is {get_down_distance():.2f}m from the ground!")
                 break
             
@@ -190,18 +190,18 @@ async def cmd_fly(drone, command:DroneCommand):
             await asyncio.sleep(0.1)
 
         # Hold hover briefly, then return so next command can run.
-        if command.get("direction") == "up":
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, abs(down), 0.0))
-            await asyncio.sleep(0.8)
-        elif command.get("direction") == "down":
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, -down, 0.0))
-            await asyncio.sleep(1.2)
-        elif command.get("direction") == "forward":
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(-fwd, 0.0, 0.0, 0.0))
-            await asyncio.sleep(0.3)
-        elif command.get("direction") == "backward":
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, 0.0, 0.0, 0.0))
-            await asyncio.sleep(0.3)
+        # if command.get("direction") == "up":
+        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, abs(down), 0.0))
+        #     await asyncio.sleep(0.8)
+        # elif command.get("direction") == "down":
+        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, -down, 0.0))
+        #     await asyncio.sleep(1.2)
+        # elif command.get("direction") == "forward":
+        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(-fwd, 0.0, 0.0, 0.0))
+        #     await asyncio.sleep(0.3)
+        # elif command.get("direction") == "backward":
+        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, 0.0, 0.0, 0.0))
+        #     await asyncio.sleep(0.3)
 
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         await asyncio.sleep(0.05)

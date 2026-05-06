@@ -28,6 +28,26 @@ def avg_readings(readings_buffer: deque):
     return mean_buffer
 
 
+def stopping_distance(current_velocity: float, direction: str) -> float:
+    """
+    Calculate required stopping distance based on current velocity.
+    physics: d = v²/2a  (distance = velocity squared / 2 * deceleration)
+    """
+    DECELERATION = {
+        "forward":  3.0,  # m/s² - easy, no gravity effect
+        "up":       2.0,  # m/s² - harder, gravity causes overshoot  
+        "down":     1.5,  # m/s² - hardest, gravity assists descent
+    }
+    SAFETY_MARGIN = {
+        "forward":  0.3,
+        "up":       0.5,
+        "down":     0.7,  # largest margin because gravity keeps pulling
+    }
+    
+    a = DECELERATION[direction]
+    d = (current_velocity ** 2) / (2 * a)
+    return d + SAFETY_MARGIN[direction]
+
 
 #----------------------- FORWARD SENSOR -------------------------#
 def get_forward_distance():
@@ -59,9 +79,13 @@ async def watch_distance_fwd():
             pass  # file might not exist yet
         await asyncio.sleep(0.05)
 
-def is_obstacle_forward():
-    dist_fwd = get_forward_distance()
-    return dist_fwd is not None and dist_fwd <= COLLISION_THRESHOLD
+def is_obstacle_forward(current_velocity: float):
+    # dist_fwd = get_forward_distance()
+    # return dist_fwd is not None and dist_fwd <= COLLISION_THRESHOLD
+    dist = get_forward_distance()
+    if dist is None:
+        return False
+    return dist < stopping_distance(current_velocity, "forward")
 
 #----------------------- UP SENSOR -------------------------#
 def get_up_distance():
@@ -94,10 +118,13 @@ async def watch_distance_up():
         
         await asyncio.sleep(0.05)
 
-def is_obstacle_up():
-    dist_up = get_up_distance()
-    return dist_up is not None and dist_up <= COLLISION_THRESHOLD
-
+def is_obstacle_up(current_velocity: float):
+    # dist_up = get_up_distance()
+    # return dist_up is not None and dist_up <= COLLISION_THRESHOLD
+    dist = get_up_distance()
+    if dist is None:
+        return False
+    return dist < stopping_distance(current_velocity, "up")
 
 #----------------------- DOWN SENSOR -------------------------#
 def get_down_distance():
@@ -130,6 +157,10 @@ async def watch_distance_down():
         
         await asyncio.sleep(0.05)
 
-def is_obstacle_down():
-    dist_down = get_down_distance()
-    return dist_down is not None and dist_down <= COLLISION_THRESHOLD
+def is_obstacle_down(current_velocity: float):
+    # dist_down = get_down_distance()
+    # return dist_down is not None and dist_down <= COLLISION_THRESHOLD
+    dist = get_down_distance()
+    if dist is None:
+        return False
+    return dist < stopping_distance(current_velocity, "down")
