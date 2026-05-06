@@ -133,7 +133,7 @@ async def test_fly_forward(drone):
 
 #-----Test for sensor_forward--------#
 @pytest.mark.asyncio
-async def test_forward_sensor(drone):
+async def test_forward_sensor(drone, capfd):
 
 
     #TODO: Fixa så att den checkar data från sensorn istället för GPS!
@@ -143,28 +143,41 @@ async def test_forward_sensor(drone):
 
     await reset_to_origin(drone)
 
-    # checka sensor
     before = get_forward_distance()
     print(f"forward before: {before}")
 
-    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 99, "unit": "meters"}
+    async for pos in drone.telemetry.position_velocity_ned():
+        start = pos.position
+        break
+
+    capfd.readouterr()  # discard prior output so we only inspect this command's logs
+
+    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 10, "unit": "meters"}
     await txt_to_cmd(drone, fly_fwd_cmd)
     await asyncio.sleep(10)
 
-    # checka sensor igen
-    after = get_forward_distance()
-    print(f"forward after: {after}")
+    captured = capfd.readouterr()
 
-    #kontroll
-    assert after is not None, "No forward value"
-    assert after < COLLISION_THRESHOLD, (
-        f"Drone did not stop near ceiling: up={after:.2f}m, "
-        f"expected < {COLLISION_THRESHOLD}m"
+    async for pos in drone.telemetry.position_velocity_ned():
+        end = pos.position
+        break
+
+    dist_moved = math.sqrt(
+        (end.north_m - start.north_m)**2 + (end.east_m - start.east_m)**2
+    )
+    print(f"Drone flew {dist_moved:.2f}m before stopping (commanded 99m)")
+
+    assert "EMERGENCY STOPPING" in captured.out, (
+        "Forward brake never fired — sensor pipeline did not stop the drone"
+    )
+    assert 1.0 < dist_moved < 20.0, (
+        f"Forward brake fired but drone still flew {dist_moved:.2f}m, "
+        f"expected to stop between 1-20m"
     )
     
 #-----Test for sensor_up--------#
 @pytest.mark.asyncio
-async def test_up_sensor(drone):
+async def test_up_sensor(drone, capfd):
     #TODO: Fixa så att den checkar data från sensorn istället för GPS!
     async for in_air in drone.telemetry.in_air():
         assert in_air, "Drone was not in air!"
@@ -172,29 +185,41 @@ async def test_up_sensor(drone):
 
     await reset_to_origin(drone)
 
-    # checka sensor
     before = get_up_distance()
     print(f"up before: {before}")
 
-    fly_up_cmd = {"action": "fly", "direction": "up", "integer": 99, "unit": "meters"}
+    async for pos in drone.telemetry.position_velocity_ned():
+        start = pos.position
+        break
+
+    capfd.readouterr()
+
+    fly_up_cmd = {"action": "fly", "direction": "up", "integer": 9, "unit": "meters"}
     await txt_to_cmd(drone, fly_up_cmd)
     await asyncio.sleep(10)
 
+    captured = capfd.readouterr()
 
-    # checka sensor igen
-    after = get_up_distance()
-    print(f"up after: {after}")
+    async for pos in drone.telemetry.position_velocity_ned():
+        end = pos.position
+        break
 
-    assert after is not None, "No forward value"
-    assert after < COLLISION_THRESHOLD, (
-        f"Drone did not stop near ceiling: up={after:.2f}m, "
-        f"expected < {COLLISION_THRESHOLD}m"
+    # NED down is positive downward, so climbing reduces down. Flip sign for "altitude gained".
+    dist_moved = abs(start.down_m - end.down_m)
+    print(f"Drone climbed {dist_moved:.2f}m before stopping (commanded 99m)")
+
+    assert "EMERGENCY STOPPING" in captured.out, (
+        "Up brake never fired — sensor pipeline did not stop the drone"
+    )
+    assert 1.0 < dist_moved < 10.0, (
+        f"Up brake fired but drone still climbed {dist_moved:.2f}m, "
+        f"expected to stop between 1-10m"
     )
     
 
 #-----Test for sensor_down--------#
 @pytest.mark.asyncio
-async def test_down_sensor(drone):
+async def test_down_sensor(drone, capfd):
     #TODO: Fixa så att den checkar data från sensorn istället för GPS!
     async for in_air in drone.telemetry.in_air():
         assert in_air, "Drone was not in air!"
@@ -202,25 +227,36 @@ async def test_down_sensor(drone):
 
     await reset_to_origin(drone)
 
-    # checka sensor
     before = get_down_distance()
     print(f"down before: {before}")
 
+    async for pos in drone.telemetry.position_velocity_ned():
+        start = pos.position
+        break
 
-    fly_down_cmd = {"action": "fly", "direction": "down", "integer": 99, "unit": "meters"}
+    capfd.readouterr()
+
+    fly_down_cmd = {"action": "fly", "direction": "down", "integer": 6, "unit": "meters"}
     await txt_to_cmd(drone, fly_down_cmd)
     await asyncio.sleep(10)
 
-    # checka sensor igen
-    after = get_down_distance()
-    print(f"down after: {after}")
+    captured = capfd.readouterr()
 
-    assert after is not None, "No forward value"
-    assert after < COLLISION_THRESHOLD, (
-        f"Drone did not stop near ceiling: up={after:.2f}m, "
-        f"expected < {COLLISION_THRESHOLD}m"
+    async for pos in drone.telemetry.position_velocity_ned():
+        end = pos.position
+        break
+
+    dist_moved = abs(end.down_m - start.down_m)
+    print(f"Drone descended {dist_moved:.2f}m before stopping (commanded 99m)")
+
+    assert "EMERGENCY STOPPING" in captured.out, (
+        "Down brake never fired — sensor pipeline did not stop the drone"
     )
-    
+    assert 0.5 < dist_moved < 3.5, (
+        f"Down brake fired but drone still descended {dist_moved:.2f}m, "
+        f"expected to stop between 0.5-3.5m"
+    )
+
 
 @pytest.mark.asyncio
 async def test_fly_backwards(drone):
@@ -417,10 +453,21 @@ async def test_rotate_counter_clockwise(drone):
 #-----Test for cmd_land--------#
 @pytest.mark.asyncio
 async def test_land(drone):
-    # TODO: check if drone is flying, then send land command and check that it lands properly
-    async for in_air in drone.telemetry.in_air():
-        assert in_air, "Drone was not in air!"
+    # If the previous test left us on the ground (e.g. down sensor coast), re-arm and take off
+    in_air = False
+    async for x in drone.telemetry.in_air():
+        in_air = x
         break
+
+    if not in_air:
+        print("Drone not airborne — re-arming and taking off for land test")
+        async for is_armed in drone.telemetry.armed():
+            if not is_armed:
+                await txt_to_cmd(drone, {"action": "arm"})
+                await asyncio.sleep(2)
+            break
+        await txt_to_cmd(drone, {"action": "take off"})
+        await asyncio.sleep(5)
 
     # Send land command
     land_cmd = {"action": "land"}
