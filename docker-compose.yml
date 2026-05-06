@@ -15,6 +15,9 @@ services:
       - ./sim/entrypoint.sh:/home/ardupilot/entrypoint.sh
       - ./worlds:/home/ardupilot/custom_worlds:ro    # Drop custom .sdf worlds here
       - ./models:/home/ardupilot/custom_models:ro    # Drop custom drone models here
+      - ./ardupilot_gazebo/models/iris_with_gimbal:/home/ardupilot/ardupilot_gazebo/models/iris_with_gimbal:ro
+      - ./sim/sensor_bridge.py:/home/ardupilot/sensor_bridge.py
+      - ./shared:/shared
     tty: true
     stdin_open: true
 
@@ -24,9 +27,14 @@ services:
     container_name: logic-engine
     depends_on:
       - sim
+    devices:
+      - "/dev/snd:/dev/snd"
+    privileged: true
     environment:
       - SITL_ADDRESS=tcpout://sim:5790
     volumes:
       - ./logic-engine:/app
+      - ./shared:/shared
     tty: true
+
   

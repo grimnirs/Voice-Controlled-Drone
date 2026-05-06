@@ -6,7 +6,7 @@ from mavsdk.offboard import VelocityBodyYawspeed
 import math
 from typing import TypedDict, Optional
 import asyncio
-from state.machine import DroneState
+from collision_handler import is_obstacle_forward, get_forward_distance
  
 _hover_task: Optional[asyncio.Task] = None
 
@@ -19,7 +19,7 @@ class DroneCommand(TypedDict, total=False):
 ACTIONS = {
     "arm":str,
     "start":str,
-    "takeoff":str,
+    "take off":str,
     "land":str,
     "fly":str,
     "rotate":str,
@@ -40,22 +40,20 @@ COMMAND_TO_STATE = {
 
 #NED - North, East, Down
 DIRECTIONS = {
-    "forward":              (1, 0, 0, 0),   # om problem Ã¤ndra till (1, 0, 0)
+    "forward":              (1, 0, 0, 0),   # om problem Ãndra till (1, 0, 0)
     "backward":             (-1, 0, 0, 0),  
     "right":                (0, 1, 0, 0),   
     "left":                 (0, -1, 0, 0),   
     "up":                   (0, 0, -1, 0), 
     "down":                 (0, 0, 1, 0),  
     "clockwise":            (0, 0, 0, 1),
-    "counter-clockwise":    (0, 0, 0, -1)
+    "counter clockwise":    (0, 0, 0, -1)
 }
 
-
 async def cmd_arm(drone, command: DroneCommand):
-    # --- Health check START ---
     async for health in drone.telemetry.health():
         if health.is_global_position_ok and health.is_home_position_ok:
-            print(f"Drone is armable!")
+            print("Drone is armable!")
             break
         else:
             print("Health not ready...")
@@ -65,36 +63,42 @@ async def cmd_arm(drone, command: DroneCommand):
     while True:
         try:
             await drone.action.arm()
+            print("✅ Armed!")
             break
         except Exception as e:
             print(f"Arming failed: {e}")
             await asyncio.sleep(3)
 
+
 async def cmd_takeoff(drone, command: DroneCommand):
+    print("-- Waiting for armed state --")
     async for is_armed in drone.telemetry.armed():
-        if not is_armed:
-            print("Drone not armed")
-            return
-        break
+        if is_armed:
+            print("Drone is armed, taking off!")
+            break
+        else:
+            print("Waiting for arm...")
+            await asyncio.sleep(1)
 
     print("-- Takeoff --")
     try:
         await drone.action.set_takeoff_altitude(3.0)
         await drone.action.takeoff()
         print("Airborne!")
-        await asyncio.sleep(8)  # wait for drone to reach 3m
+        await asyncio.sleep(8)
     except Exception as e:
         print(f"Takeoff failed: {e}")
 
+
 async def cmd_land(drone, command: DroneCommand):
     print("-- Landing --")
-    while True:
-        try:
-            await drone.action.land()
-        except Exception as e:
-            print(f"Landing failed: {e}")
-            return
-        
+    try:
+        await drone.action.land()
+    except Exception as e:
+        print(f"Landing failed: {e}")
+        return
+
+
 async def hold_position(drone):
     """Continuously sends zero velocity to hold position in offboard mode."""
     try:
@@ -104,10 +108,12 @@ async def hold_position(drone):
     except asyncio.CancelledError:
         pass  
 
+
 async def start_hover(drone):
     global _hover_task
     await stop_hover()  
     _hover_task = asyncio.create_task(hold_position(drone))
+
 
 async def stop_hover():
     global _hover_task
@@ -115,58 +121,14 @@ async def stop_hover():
         _hover_task.cancel()
         await asyncio.sleep(0.05) 
 
-# async def cmd_fly(drone, command:DroneCommand):
-#     async for in_air in drone.telemetry.in_air():
-#         if not in_air:
-#             print("Action denied! Drone not in air!")
-#             return
-#         break
-    
-#     print("-- Initializing movement sequence --")
-    
-#     direction_key = command.get("direction")
-#     integer = float(command.get("integer")) 
-#     unit = command.get("unit")
-#     velocity = 1 
-#     duration = integer / velocity
-    
-#     if direction_key is None or integer is None or unit is None:
-#         print(f"Action requires direction, integer and unit!") 
-#         return 
-    
-#     if direction_key not in DIRECTIONS:
-#         print("Direction not found")
-#         return
-  
-#     direction_vector = DIRECTIONS.get(direction_key)
 
-#     fwd = direction_vector[0] * velocity
-#     right = direction_vector[1] * velocity
-#     down = direction_vector[2] * velocity
-
-#     try:
-#         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-#         await drone.offboard.start()
-
-#         start = asyncio.get_event_loop().time()   
-#         while asyncio.get_event_loop().time() - start < duration: 
-#             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, right, down, 0.0))
-#             await asyncio.sleep(0.1)
-
-#         # Stop after duration
-#         while True:
-#             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-#             await asyncio.sleep(1)
-#             #await drone.action.hold()
-#             print("Flight complete!")
-
-#     except Exception as e:
-#         print(f"Failed to fly: {e}")
-#______
-async def get_local_xy_m(drone):
+async def get_local_xyz_m(drone):
     async for pos_vel in drone.telemetry.position_velocity_ned():
-        return pos_vel.position.north_m, pos_vel.position.east_m
+        return (pos_vel.position.north_m,
+                pos_vel.position.east_m,
+                pos_vel.position.down_m)
     return None
+
 
 async def cmd_fly(drone, command:DroneCommand):
     await stop_hover()
@@ -182,8 +144,9 @@ async def cmd_fly(drone, command:DroneCommand):
     direction_key = command.get("direction")
     integer = float(command.get("integer")) 
     unit = command.get("unit")
-    velocity = 2 
-    duration = integer / velocity
+    velocity = 2  
+    MIN_ALTITUDE = 0.5
+    MAX_ALTITUDE = 10.0
     
     if direction_key is None or integer is None or unit is None:
         print(f"Action requires direction, integer and unit!") 
@@ -199,22 +162,32 @@ async def cmd_fly(drone, command:DroneCommand):
     right = direction_vector[1] * velocity
     down = direction_vector[2] * velocity
 
-    start_xy = await get_local_xy_m(drone)
+    start_xyz = await get_local_xyz_m(drone)
+    current_altitude = -start_xyz[2]
     
     try:
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await drone.offboard.start()
-        #safety_margin = velocity
+        await drone.offboard.start() 
 
-        start = asyncio.get_event_loop().time()   
         while True: 
-            current_xy = await get_local_xy_m(drone)
-            if current_xy is not None:
-                    travelled = math.hypot(
-                        current_xy[0] - start_xy[0],
-                        current_xy[1] - start_xy[1]
+            if direction_key == "forward" and is_obstacle_forward():
+                print(f"EMERGENCY STOPPING! Drone is {get_forward_distance():.2f}m from an obstacle!")
+                break
+            
+            current_xyz = await get_local_xyz_m(drone)
+            if current_xyz is not None:
+                if command.get("direction") == "up":
+                    travelled = abs(current_xyz[2] - start_xyz[2])
+
+                elif command.get("direction") == "down":
+                    travelled = abs(current_xyz[2] - start_xyz[2])
+                
+                else:
+                    travelled = math.sqrt(
+                        (current_xyz[0] - start_xyz[0]) ** 2 +
+                        (current_xyz[1] - start_xyz[1]) ** 2 
                     )
-            if travelled >= (integer):
+            if travelled >= (integer - velocity):
                 break
 
             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, right, down, 0.0))
@@ -229,13 +202,9 @@ async def cmd_fly(drone, command:DroneCommand):
             
     except Exception as e:
         print(f"Failed to fly: {e}")
-#______
 
 async def cmd_rotate(drone, command: DroneCommand):
     await stop_hover()
-
-    #if avoid_collision:
-        #return # what should happen when stopping?
     
     rotation = command.get("direction")
 
@@ -248,7 +217,7 @@ async def cmd_rotate(drone, command: DroneCommand):
         return
     
     degree = 90.0
-    speed = 30.0
+    speed = 20.0
     target_heading = 0.0
     direction_mult = 0.0
     current_heading = 0.0
@@ -262,7 +231,7 @@ async def cmd_rotate(drone, command: DroneCommand):
     if rotation == "clockwise":
         target_heading = (start_yaw + degree) % 360
         direction_mult = 1
-    elif rotation == "counter-clockwise":
+    elif rotation == "counter clockwise":
         target_heading = (start_yaw - degree) % 360
         direction_mult = -1
     else: 
@@ -278,18 +247,16 @@ async def cmd_rotate(drone, command: DroneCommand):
         
             diff_from_target_degree = (target_heading - current_heading + 180) % 360 - 180
 
-            if abs(diff_from_target_degree) < 2.0:
+            if abs(diff_from_target_degree) < 5.0:  # helst 2 men 5 om datorn är långsam när testerna körs
                 print(f"Target reached at {current_heading:.1f}!")
                 break
 
-            current_speed = speed if abs(diff_from_target_degree) > 10 else 10.0 # slow down when close to target
-
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, (direction_mult * current_speed)))
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, (direction_mult * speed)))
             await asyncio.sleep(0.05)
 
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         await asyncio.sleep(0.05)
-        print("Rotation complete")
+        print(f"Rotation complete, diff from target degree: {diff_from_target_degree}")
         await start_hover(drone)
         return
         
@@ -336,8 +303,10 @@ async def txt_to_cmd(drone, command: DroneCommand):
     # --- DISPATCH ---
     if action == "arm":
         await cmd_arm(drone, command)
-    elif action == "takeoff":
-        await cmd_takeoff(drone, command)
+
+    elif action == "take off":
+       await cmd_takeoff(drone, command)
+
     elif action == "fly":
         await cmd_fly(drone, command)
     elif action == "land":
@@ -361,4 +330,4 @@ async def txt_to_cmd(drone, command: DroneCommand):
 
     else:
         print("Unknown command", {command})
->>>>>>> origin/erika_testing
+        return

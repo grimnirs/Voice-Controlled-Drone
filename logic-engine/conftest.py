@@ -1,5 +1,3 @@
-
-
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     print("\n" + "="*30)
     print("      TEST SAMMANFATTNING")
