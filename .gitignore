@@ -18,6 +18,12 @@ venv/
 # Docker
 .docker/
 
+# Runtime sensor data (rewritten constantly by sim)
+shared/distances.json
+
+# Upstream whisper.cpp clone (not part of this project's source)
+whisper.cpp/
+
 # Claude Code
 CLAUDE.md
 ARCHITECTURE.md

@@ -5,12 +5,19 @@ import os
 from mavsdk import System
 from command_handler import txt_to_cmd
 from drone_connection import connect_and_wait_for_ready
-from collision_handler import watch_distance
+from collision_handler import (
+    get_forward_distance,
+    get_up_distance,
+    get_down_distance,
+    COLLISION_THRESHOLD,
+)
 import math
 
 # To run tests:
 # 1. docker compose up -d
 # 2. docker compose exec logic-engine pytest -s test.py
+
+
 
 SITL_ADDRESS = "tcpout://sim:5790"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -50,7 +57,7 @@ async def test_takeoff_and_altitude(drone):
             await txt_to_cmd(drone, arm_cmd)
             await asyncio.sleep(2)  
         break
-    
+
     # send takeoff command
     takeoff_cmd = {"action": "take off"}
     await txt_to_cmd(drone, takeoff_cmd)
@@ -63,36 +70,7 @@ async def test_takeoff_and_altitude(drone):
         assert altitude > 2.5, f"Drone failed to take off properly, altitude is only {altitude:.2f} m"
         break
 
-#-----Test for sensor_forward--------#
-@pytest.mark.asyncio
-async def test_forward_sensor(drone):
 
-    async for in_air in drone.telemetry.in_air():
-        assert in_air, "Drone was not in air!"
-        break
-
-    async for pos in drone.telemetry.position_velocity_ned():
-        start = pos.position
-        break
-
-    # We ask drone to fly 20m but want it to stop after 6-7m
-    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 20, "unit": "meters"}
-    await txt_to_cmd(drone, fly_fwd_cmd)
-    await asyncio.sleep(10)
-
-    async for pos in drone.telemetry.position_velocity_ned():
-        end = pos.position
-        
-        dist_moved = math.sqrt(
-            (end.north_m - start.north_m)**2 + 
-            (end.east_m - start.east_m)**2
-        )
-        
-        print(f"Drone flyed {dist_moved:.2f}m before it stopped")
-        
-        assert 7 < dist_moved < 9, f"Sensor did not stop the drone correct! Drone flew {dist_moved}m"
-        break
-    
 
 #-----Test for cmd_fly--------#
 @pytest.mark.asyncio
@@ -124,6 +102,91 @@ async def test_fly_forward(drone):
         distance = math.sqrt(d_north**2 + d_east**2 + d_down**2)
         assert 4.0 < distance < 6.0
         break
+
+#-----Test for sensor_forward--------#
+@pytest.mark.asyncio
+async def test_forward_sensor(drone):
+
+
+    #TODO: Fixa så att den checkar data från sensorn istället för GPS!
+    async for in_air in drone.telemetry.in_air():
+        assert in_air, "Drone was not in air!"
+        break
+
+    # checka sensor
+    before = get_forward_distance()
+    print(f"forward before: {before}")
+
+    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 99, "unit": "meters"}
+    await txt_to_cmd(drone, fly_fwd_cmd)
+    await asyncio.sleep(10)
+
+    # checka sensor igen
+    after = get_forward_distance()
+    print(f"forward after: {after}")
+
+    #kontroll
+    assert after is not None, "No forward value"
+    assert after < COLLISION_THRESHOLD, (
+        f"Drone did not stop near ceiling: up={after:.2f}m, "
+        f"expected < {COLLISION_THRESHOLD}m"
+    )
+    
+#-----Test for sensor_up--------#
+@pytest.mark.asyncio
+async def test_up_sensor(drone):
+    #TODO: Fixa så att den checkar data från sensorn istället för GPS!
+    async for in_air in drone.telemetry.in_air():
+        assert in_air, "Drone was not in air!"
+        break
+
+    # checka sensor
+    before = get_up_distance()
+    print(f"up before: {before}")
+
+    fly_up_cmd = {"action": "fly", "direction": "up", "integer": 99, "unit": "meters"}
+    await txt_to_cmd(drone, fly_up_cmd)
+    await asyncio.sleep(10)
+
+
+    # checka sensor igen
+    after = get_up_distance()
+    print(f"up after: {after}")
+
+    assert after is not None, "No forward value"
+    assert after < COLLISION_THRESHOLD, (
+        f"Drone did not stop near ceiling: up={after:.2f}m, "
+        f"expected < {COLLISION_THRESHOLD}m"
+    )
+    
+
+#-----Test for sensor_down--------#
+@pytest.mark.asyncio
+async def test_down_sensor(drone):
+    #TODO: Fixa så att den checkar data från sensorn istället för GPS!
+    async for in_air in drone.telemetry.in_air():
+        assert in_air, "Drone was not in air!"
+        break
+
+    # checka sensor
+    before = get_down_distance()
+    print(f"down before: {before}")
+
+
+    fly_down_cmd = {"action": "fly", "direction": "down", "integer": 99, "unit": "meters"}
+    await txt_to_cmd(drone, fly_down_cmd)
+    await asyncio.sleep(10)
+
+    # checka sensor igen
+    after = get_down_distance()
+    print(f"down after: {after}")
+
+    assert after is not None, "No forward value"
+    assert after < COLLISION_THRESHOLD, (
+        f"Drone did not stop near ceiling: up={after:.2f}m, "
+        f"expected < {COLLISION_THRESHOLD}m"
+    )
+    
 
 @pytest.mark.asyncio
 async def test_fly_backwards(drone):

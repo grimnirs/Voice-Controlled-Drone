@@ -430,6 +430,49 @@
                 linear: {x: 0.0, y: 0.0}, angular: {z: 0.0}
         </output>
     </plugin>
+<model name="depot_collision_cage">
+  <static>true</static>
+  <pose>0 0 0 0 0 0</pose>
+  <link name="cage_link">
+
+    <!-- floor -->
+    <collision name="floor">
+      <pose>-0.5 0 -0.05 0 0 0</pose>
+      <geometry><box><size>30 15 0.1</size></box></geometry>
+    </collision>
+
+    <!-- ceiling at z = 8.75 -->
+    <collision name="ceiling">
+      <pose>-0.5 0 8.75 0 0 0</pose>
+      <geometry><box><size>30 15 0.1</size></box></geometry>
+    </collision>
+
+    <!-- forward wall (+X) at x = 14 -->
+    <collision name="wall_forward">
+      <pose>14 0 4.375 0 0 0</pose>
+      <geometry><box><size>0.1 15 8.75</size></box></geometry>
+    </collision>
+
+    <!-- back wall (-X) at x = -15 -->
+    <collision name="wall_back">
+      <pose>-15 0 4.375 0 0 0</pose>
+      <geometry><box><size>0.1 15 8.75</size></box></geometry>
+    </collision>
+
+    <!-- left wall (+Y) at y = 7 -->
+    <collision name="wall_left">
+      <pose>-0.5 7 4.375 0 0 0</pose>
+      <geometry><box><size>30 0.1 8.75</size></box></geometry>
+    </collision>
+
+    <!-- right wall (-Y) at y = -7 -->
+    <collision name="wall_right">
+      <pose>-0.5 -7 4.375 0 0 0</pose>
+      <geometry><box><size>30 0.1 8.75</size></box></geometry>
+    </collision>
+
+  </link>
+</model>
 
   </world>
 </sdf>
