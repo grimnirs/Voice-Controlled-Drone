@@ -8,7 +8,9 @@ from unittest.mock import patch, MagicMock
 # OBSOBSOBS Download Gemma locally on your computer
 # 1. brew install ollama
 # 2. ollama serve
-# 3. (NEW TERMINAL!!) ollama run
+# (NEW TERMINAL!!) 
+# ollama pull gemma4:e4b
+# ollama run gemma4:e4b
 # then run the tests in a new terminal!
 
 # To run tests:

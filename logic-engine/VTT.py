@@ -85,7 +85,7 @@ Input: "{text}"
     response = requests.post(
         f"{OLLAMA_HOST}/api/generate",
         json={
-            "model": "gemma",
+            "model": "gemma4:e4b",
             "prompt": prompt,
             "stream": False
         }
@@ -104,21 +104,21 @@ Input: "{text}"
         return None
 
 
-def write_json(new_data, filename="../../logic-engine/commands.json"):
-    if not os.path.exists(filename):
-        with open(filename, "w") as file:
-            json.dump([], file)
+# def write_json(new_data, filename="../../logic-engine/commands.json"):
+#     if not os.path.exists(filename):
+#         with open(filename, "w") as file:
+#             json.dump([], file)
 
-    with open(filename, "r+") as file:
-        try:
-            file_data = json.load(file)
-        except json.JSONDecodeError:
-            file_data = []
+#     with open(filename, "r+") as file:
+#         try:
+#             file_data = json.load(file)
+#         except json.JSONDecodeError:
+#             file_data = []
 
-        print("Written to JSON file")
-        file_data.append(new_data)
-        file.seek(0)
-        json.dump(file_data, file, indent=4)
+#         print("Written to JSON file")
+#         file_data.append(new_data)
+#         file.seek(0)
+#         json.dump(file_data, file, indent=4)
 
 
 def get_int(words):
