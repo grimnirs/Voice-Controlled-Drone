@@ -15,6 +15,7 @@ ACTIONS = {
     "arm":str,
     "start":str,
     "take off":str,
+    "takeoff":str,  # Tillagt från espana
     "land":str,
     "fly":str,
     "rotate":str,
@@ -295,7 +296,7 @@ async def txt_to_cmd(drone, command: DroneCommand):
     elif action == "arm" or action == "start":
         await cmd_arm(drone, command)
 
-    elif action == "take off":
+    elif action == "take off" or action == "takeoff":
        await cmd_takeoff(drone, command)
 
     elif action == "fly":

@@ -26,6 +26,17 @@ __label__fly_right drift right
 __label__fly_right move to the right
 __label__fly_right go to the right
 
+__label__fly_backward fly backward
+__label__fly_backward fly backwards
+__label__fly_backward go backward
+__label__fly_backward go backwards
+__label__fly_backward move backward
+__label__fly_backward move backwards
+__label__fly_backward go backward
+__label__fly_backward go backwards
+__label__fly_backward back up
+__label__fly_backward reverse
+
 __label__fly_up fly up
 __label__fly_up go up
 __label__fly_up move up

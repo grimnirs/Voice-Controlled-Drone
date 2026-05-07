@@ -23,17 +23,29 @@ VALID_FLIGHT_COMMANDS = {
     "rotate": ["clockwise", "counter clockwise"],
     "land": [None],
     "take off": [None],
+    "takeoff": [None],
     "stop": [None],
     "arm": [None]
 }
 
-SYNONYM_MAP = {
-    "go": "fly", "move": "fly", "travel": "fly",
-    "turn": "rotate", "spin": "rotate",
-    "halt": "stop", "kill": "stop",
-    "ascend": "up", "descend": "down",
-    "forwards": "forward", "backwards": "backward",
-    "clockwise": "clockwise", "counter-clockwise": "counter clockwise"
+# SYNONYM_MAP = {
+#     "go": "fly", "move": "fly", "travel": "fly",
+#     "turn": "rotate", "spin": "rotate",
+#     "halt": "stop", "kill": "stop",
+#     "ascend": "up", "descend": "down",
+#     "forwards": "forward", "backwards": "backward",
+#     "clockwise": "clockwise", "counter-clockwise": "counter clockwise"
+# }
+
+CMD = {
+    "go", "move", "head", "drift", "travel",
+    "turn", "spin",
+    "halt", "kill",
+    "ascend", "descend", "rise", "climb", "lower", "drop",
+    "forwards", "backwards", "back", "reverse", "ahead", "straight",
+    "launch", "lift", "takeoff", "initialize", "start",
+    "touch", "come", "set", "please", "now", "immediately",
+    "emergency", "motors", "the", "to"
 }
 
 WORD_TO_DIGIT = {
@@ -50,7 +62,8 @@ for action, directions in VALID_FLIGHT_COMMANDS.items():
         if d:
             for word in d.split(): COMMAND_WORDS.add(word)
 
-COMMAND_WORDS |= set(SYNONYM_MAP.keys())
+# COMMAND_WORDS |= set(SYNONYM_MAP.keys())
+COMMAND_WORDS |= CMD
 COMMAND_WORDS |= set(WORD_TO_DIGIT.keys())
 COMMAND_WORDS |= {"drone", "over", "stop", "meters", "meter", "centimeters", "millimeters"}
 COMMAND_WORDS |= {str(i) for i in range(100)}
@@ -66,25 +79,27 @@ _command_log = []
 
 def parse_and_validate(text):
     text = text.lower()
-    action = None
-    if "move" in text or "fly" in text: action = "fly"
-    elif "rotate" in text or "turn" in text: action = "rotate"
-    elif "land" in text: action = "land"
-    elif "stop" in text or "halt" in text: action = "stop"
-    elif "take off" in text: action = "take off"
-    elif "arm" in text: action = "arm"
+    # action = None
+    # if "move" in text or "fly" in text: action = "fly"
+    # elif "rotate" in text or "turn" in text: action = "rotate"
+    # elif "land" in text: action = "land"
+    # elif "stop" in text or "halt" in text: action = "stop"
+    # elif "take off" in text: action = "take off"
+    # elif "arm" in text: action = "arm"
     
-    direction = None
-    if action in ["fly", "rotate"]:
-        directions = ["forward", "backward", "left", "right", "up", "down", "clockwise", "counter clockwise"]
-        for d in directions:
-            if d in text:
-                direction = d
-                break
+    # direction = None
+    # if action in ["fly", "rotate"]:
+    #     directions = ["forward", "backward", "left", "right", "up", "down", "clockwise", "counter clockwise"]
+    #     for d in directions:
+    #         if d in text:
+    #             direction = d
+    #             break
+    
+    action, direction = map_intent(text)
 
     if action in VALID_FLIGHT_COMMANDS:
         allowed_directions = VALID_FLIGHT_COMMANDS[action]
-        if action in ["arm", "take off", "land", "stop"]:
+        if action in ["arm", "take off", "land", "stop", "takeoff" ]:
             return {"action": action, "direction": None}
         if direction in allowed_directions:
             return {"action": action, "direction": direction}
@@ -113,15 +128,21 @@ def append_command(data):
     _command_log.append(data)
     flush_to_disk()
 
-def normalize_text(words):
-    return [SYNONYM_MAP.get(w, w) for w in words]
+# def normalize_text(words):
+#     return [SYNONYM_MAP.get(w, w) for w in words]
 
 def main():
     is_active = False
     rolling_buffer = ""  
 
     proc = subprocess.Popen(
-        [WHISPER_BIN, "-m", WHISPER_MODEL, "--step", "500", "--length", "5000", "--keep", "200", "-t", "8"],
+        [WHISPER_BIN, 
+         "-m", 
+         WHISPER_MODEL, 
+         "--step", "1000", #how often whisper processes words
+         "--length", "5000", #audio window
+         "--keep", "200", #how much audio to keep from earlier window
+         "-t", "8"], #number of cpu threads
         stdout=subprocess.PIPE, stderr=None, text=True, bufsize=1, cwd=os.path.dirname(WHISPER_BIN)
     )
 
@@ -131,7 +152,7 @@ def main():
             if not chunk or not (chunk := RE_NOISE.sub('', chunk).strip()): continue
 
             chunk_words = [w.strip(string.punctuation) for w in chunk.split()]
-            chunk_words = normalize_text(chunk_words)
+            # chunk_words = normalize_text(chunk_words)
             rolling_buffer = (rolling_buffer + " " + " ".join(chunk_words)).strip()
 
             filtered_words = [w for w in rolling_buffer.split() if w.strip(string.punctuation) in COMMAND_WORDS]
@@ -154,29 +175,42 @@ def main():
             if is_active:
                 cleaned = RE_TRIGGERS.sub('', rolling_buffer).strip()
                 if has_over:
+                    print(f"DEBUG predict input: '{cleaned}'")
+                    #train_data = map_intent(cleaned)
                     intent, confidence = predict(cleaned)
+                    print(f"DEBUG intent: {intent}, confidence: {confidence:.2f}")
                     if confidence >= 0.5:
-                        # --- THE FIX: SAFETY FIRST ---
-                        structured = parse_and_validate(cleaned)
+                        # structured = parse_and_validate(intent)
+                        action, direction = map_intent(intent)
+
+                        if action not in VALID_FLIGHT_COMMANDS:
+                            print(f"DEBUG: Invalid action '{action}'")
+                            continue
+
+                        if direction not in VALID_FLIGHT_COMMANDS[action]:
+                            print(f"DEBUG: Invalid direction '{direction}' for '{action}'")
+                            continue
+                        
+                        structured = {
+                            "action": action,
+                            "direction": direction
+                        }
+
                         if structured is not None:
-                            action = structured["action"]
+                            # action = structured["action"]
                             
-                            # Stationary actions
-                            if action in ["arm", "take off", "land", "stop"]:
+                            if action in ["arm", "take off", "land", "stop", "takeoff"]:
                                 structured.update({"integer": None, "unit": None})
                                 append_command(structured)
                                 print(f"✓ Command: {structured}")
                             
-                            # Movement actions
                             else:
                                 words = [w.strip(string.punctuation) for w in cleaned.split()]
                                 integer = get_int(words)
                                 unit = get_unit(words)
                                 
-                                # Special case: rotate often works without units, 
-                                # but fly always needs them
                                 if action == "rotate" or (integer and unit):
-                                    structured.update({"integer": integer, "unit": unit})
+                                    structured.update({"integer": integer, "unit": unit})     
                                     append_command(structured)
                                     print(f"✓ Command: {structured}")
                                 else:
@@ -184,7 +218,7 @@ def main():
                         else:
                             print(f"DEBUG: Regex validation failed for '{cleaned}'")
                     else:
-                        print(f"DEBUG: Low AI confidence ({confidence:.2f})")
+                        print(f"DEBUG: Low confidence ({confidence:.2f})")
 
                     is_active, rolling_buffer = False, ""
 

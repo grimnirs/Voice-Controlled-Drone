@@ -33,6 +33,7 @@ model = load_model()
 
 
 def predict(text):
+    text = text.strip().replace("\n", " ")
     labels, probs = model.predict(text)
     intent = labels[0].replace("__label__", "")
     return intent, probs[0]
