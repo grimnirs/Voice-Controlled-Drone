@@ -31,11 +31,4 @@ WORKDIR /app
 COPY . .
 RUN chmod +x start_logic.sh
 
-RUN git clone https://github.com/ggerganov/whisper.cpp /opt/whisper.cpp && \
-    cd /opt/whisper.cpp && \
-    cmake -B build -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build build --config Release -j$(nproc)
-
-RUN cd /opt/whisper.cpp && bash ./models/download-ggml-model.sh base.en
-
 CMD ["./start_logic.sh"]

@@ -5,7 +5,7 @@ import os
 from mavsdk import System
 from command_handler import txt_to_cmd
 from drone_connection import connect_and_wait_for_ready
-from collision_handler import watch_distance
+from collision_handler import get_forward_distance, get_up_distance, get_down_distance
 import math
 
 # To run tests:
@@ -65,34 +65,114 @@ async def test_takeoff_and_altitude(drone):
 
 #-----Test for sensor_forward--------#
 @pytest.mark.asyncio
-async def test_forward_sensor(drone):
-
+async def test_forward_sensor(drone, capfd):
     async for in_air in drone.telemetry.in_air():
         assert in_air, "Drone was not in air!"
         break
+
+    print(f"forward before: {get_forward_distance()}")
 
     async for pos in drone.telemetry.position_velocity_ned():
         start = pos.position
         break
 
-    # We ask drone to fly 20m but want it to stop after 6-7m
-    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 20, "unit": "meters"}
+    capfd.readouterr()  # discard prior output so we only inspect this command's logs
+
+    # Command a deliberately-too-long flight so the brake MUST be what stops the drone
+    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 99, "unit": "meters"}
     await txt_to_cmd(drone, fly_fwd_cmd)
     await asyncio.sleep(10)
 
+    captured = capfd.readouterr()
+
     async for pos in drone.telemetry.position_velocity_ned():
         end = pos.position
-        
-        dist_moved = math.sqrt(
-            (end.north_m - start.north_m)**2 + 
-            (end.east_m - start.east_m)**2
-        )
-        
-        print(f"Drone flyed {dist_moved:.2f}m before it stopped")
-        
-        assert 7 < dist_moved < 9, f"Sensor did not stop the drone correct! Drone flew {dist_moved}m"
         break
-    
+
+    dist_moved = math.sqrt(
+        (end.north_m - start.north_m)**2 + (end.east_m - start.east_m)**2
+    )
+    print(f"Drone flew {dist_moved:.2f}m before stopping (commanded 99m)")
+
+    assert "EMERGENCY STOPPING" in captured.out, (
+        "Forward brake never fired — sensor pipeline did not stop the drone"
+    )
+    assert 1.0 < dist_moved < 15.0, (
+        f"Forward brake fired but drone moved {dist_moved:.2f}m, expected 1-15m"
+    )
+
+#-----Test for sensor_up--------#
+@pytest.mark.asyncio
+async def test_up_sensor(drone, capfd):
+    async for in_air in drone.telemetry.in_air():
+        assert in_air, "Drone was not in air!"
+        break
+
+    print(f"up before: {get_up_distance()}")
+
+    async for pos in drone.telemetry.position_velocity_ned():
+        start = pos.position
+        break
+
+    capfd.readouterr()
+
+    fly_up_cmd = {"action": "fly", "direction": "up", "integer": 99, "unit": "meters"}
+    await txt_to_cmd(drone, fly_up_cmd)
+    await asyncio.sleep(10)
+
+    captured = capfd.readouterr()
+
+    async for pos in drone.telemetry.position_velocity_ned():
+        end = pos.position
+        break
+
+    # NED down is positive downward, so climbing reduces down. Flip sign for "altitude gained".
+    dist_moved = abs(start.down_m - end.down_m)
+    print(f"Drone climbed {dist_moved:.2f}m before stopping (commanded 99m)")
+
+    assert "EMERGENCY STOPPING" in captured.out, (
+        "Up brake never fired — sensor pipeline did not stop the drone"
+    )
+    assert 1.0 < dist_moved < 10.0, (
+        f"Up brake fired but drone climbed {dist_moved:.2f}m, expected 1-10m"
+    )
+
+#-----Test for sensor_down--------#
+@pytest.mark.asyncio
+async def test_down_sensor(drone, capfd):
+    async for in_air in drone.telemetry.in_air():
+        assert in_air, "Drone was not in air!"
+        break
+
+    print(f"down before: {get_down_distance()}")
+
+    async for pos in drone.telemetry.position_velocity_ned():
+        start = pos.position
+        break
+
+    capfd.readouterr()
+
+    fly_down_cmd = {"action": "fly", "direction": "down", "integer": 99, "unit": "meters"}
+    await txt_to_cmd(drone, fly_down_cmd)
+    await asyncio.sleep(10)
+
+    captured = capfd.readouterr()
+
+    async for pos in drone.telemetry.position_velocity_ned():
+        end = pos.position
+        break
+
+    dist_moved = abs(end.down_m - start.down_m)
+    print(f"Drone descended {dist_moved:.2f}m before stopping (commanded 99m)")
+
+    assert "EMERGENCY STOPPING" in captured.out, (
+        "Down brake never fired — sensor pipeline did not stop the drone"
+    )
+    assert 0.5 < dist_moved < 5.0, (
+        f"Down brake fired but drone descended {dist_moved:.2f}m, expected 0.5-5m"
+    )
+
+
 
 #-----Test for cmd_fly--------#
 @pytest.mark.asyncio

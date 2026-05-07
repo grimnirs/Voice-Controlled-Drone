@@ -18,6 +18,10 @@ venv/
 # Docker
 .docker/
 
+# Runtime artifacts
+shared/distances.json
+whisper.cpp/
+
 # Claude Code
 CLAUDE.md
 ARCHITECTURE.md

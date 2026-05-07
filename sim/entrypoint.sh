@@ -69,7 +69,7 @@ cd "${ARDUPILOT_HOME}"
 ./build/sitl/bin/arducopter \
     --model JSON \
     --home 59.840406,17.64578,20,0 \
-    --speedup 1 \
+    --speedup 5 \
     --instance 0 \
     --sim-address=127.0.0.1 \
     --defaults Tools/autotest/default_params/copter.parm,Tools/autotest/default_params/gazebo-iris.parm &
@@ -86,10 +86,10 @@ sleep 5
 # mavlink-router only accepts raw IPs, so resolve hostnames first
 
 # Resolve host.docker.internal for QGC
-HOST_IP=$(getent hosts host.docker.internal | awk '{print $1}' || echo "")
+HOST_IP=$(getent ahostsv4 host.docker.internal | awk 'NR==1{print $1}' || echo "")
 if [ -z "${HOST_IP}" ]; then
-    # Fallback: get the default gateway IP (Docker host)
-    HOST_IP=$(ip route | grep default | awk '{print $3}' || echo "")
+    # Fallback: get the default IPv4 gateway IP (Docker host)
+    HOST_IP=$(ip -4 route | grep default | awk '{print $3}' || echo "")
 fi
 if [ -n "${HOST_IP}" ]; then
     sed -i "s/host.docker.internal/${HOST_IP}/" /home/ardupilot/mavlink-router.conf
