@@ -17,9 +17,9 @@ def disable_sensors():
     global SENSORS_ENABLED
     SENSORS_ENABLED = False
 
-fwd_buffer = deque(maxlen=5)
-up_buffer = deque(maxlen=5)
-down_buffer = deque(maxlen=5)
+fwd_buffer = deque(maxlen=3)
+up_buffer = deque(maxlen=3)
+down_buffer = deque(maxlen=3)
 
 def avg_readings(readings_buffer: deque):
     if not readings_buffer:
@@ -29,21 +29,17 @@ def avg_readings(readings_buffer: deque):
 
 
 def stopping_distance(current_velocity: float, direction: str) -> float:
-    """
-    Calculate required stopping distance based on current velocity.
-    physics: d = v²/2a  (distance = velocity squared / 2 * deceleration)
-    """
     DECELERATION = {
-        "forward":  3.0,  # m/s² - easy, no gravity effect
-        "up":       2.0,  # m/s² - harder, gravity causes overshoot  
-        "down":     1.5,  # m/s² - hardest, gravity assists descent
+        "forward":  1.5,   # was 3.0 - too optimistic
+        "up":       0.8,   # was 2.0 - gravity makes this much harder
+        "down":     0.6,   # was 1.5 - gravity actively assists descent
     }
     SAFETY_MARGIN = {
-        "forward":  0.3,
-        "up":       0.5,
-        "down":     0.7,  # largest margin because gravity keeps pulling
+        "forward":  0.5,   # was 0.3
+        "up":       1.0,   # was 0.5 - needs much more room
+        "down":     1.2,   # was 0.7
     }
-    
+
     a = DECELERATION[direction]
     d = (current_velocity ** 2) / (2 * a)
     return d + SAFETY_MARGIN[direction]

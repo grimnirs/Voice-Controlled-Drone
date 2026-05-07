@@ -74,8 +74,6 @@ async def cmd_takeoff(drone, command: DroneCommand):
         await asyncio.sleep(8)
     except Exception as e:
         print(f"Takeoff failed: {e}")
-    
-    enable_sensors()
 
 
 async def cmd_land(drone, command: DroneCommand):
@@ -120,6 +118,7 @@ async def get_local_xyz_m(drone):
 
 async def cmd_fly(drone, command:DroneCommand):
     await stop_hover()
+    enable_sensors()
 
     async for in_air in drone.telemetry.in_air():
         if not in_air:
@@ -190,18 +189,18 @@ async def cmd_fly(drone, command:DroneCommand):
             await asyncio.sleep(0.1)
 
         # Hold hover briefly, then return so next command can run.
-        # if command.get("direction") == "up":
-        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, abs(down), 0.0))
-        #     await asyncio.sleep(0.8)
-        # elif command.get("direction") == "down":
-        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, -down, 0.0))
-        #     await asyncio.sleep(1.2)
-        # elif command.get("direction") == "forward":
-        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(-fwd, 0.0, 0.0, 0.0))
-        #     await asyncio.sleep(0.3)
-        # elif command.get("direction") == "backward":
-        #     await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, 0.0, 0.0, 0.0))
-        #     await asyncio.sleep(0.3)
+        if command.get("direction") == "up":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, abs(down), 0.0))
+            await asyncio.sleep(0.8)
+        elif command.get("direction") == "down":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, -down, 0.0))
+            await asyncio.sleep(1.2)
+        elif command.get("direction") == "forward":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(-1.5, 0.0, 0.0, 0.0)) #ändra kanske
+            await asyncio.sleep(0.3)
+        elif command.get("direction") == "backward":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(1.5, 0.0, 0.0, 0.0)) #ändra kanske
+            await asyncio.sleep(0.3)
 
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         await asyncio.sleep(0.05)
