@@ -1,0 +1,97 @@
+__label__fly_forward fly forward
+__label__fly_forward move forward
+__label__fly_forward go forward
+__label__fly_forward move ahead
+__label__fly_forward go ahead
+__label__fly_forward head forward
+__label__fly_forward fly ahead
+__label__fly_forward go straight
+__label__fly_forward move straight
+
+__label__fly_left fly left
+__label__fly_left go left
+__label__fly_left move left
+__label__fly_left turn left
+__label__fly_left head left
+__label__fly_left drift left
+__label__fly_left move to the left
+__label__fly_left go to the left
+
+__label__fly_right fly right
+__label__fly_right go right
+__label__fly_right move right
+__label__fly_right turn right
+__label__fly_right head right
+__label__fly_right drift right
+__label__fly_right move to the right
+__label__fly_right go to the right
+
+__label__fly_backward fly backward
+__label__fly_backward fly backwards
+__label__fly_backward go backward
+__label__fly_backward go backwards
+__label__fly_backward move backward
+__label__fly_backward move backwards
+__label__fly_backward go backward
+__label__fly_backward go backwards
+__label__fly_backward back up
+__label__fly_backward reverse
+
+__label__fly_up fly up
+__label__fly_up go up
+__label__fly_up move up
+__label__fly_up ascend
+__label__fly_up rise
+__label__fly_up climb
+
+__label__fly_down fly down
+__label__fly_down go down
+__label__fly_down move down
+__label__fly_down descend
+__label__fly_down lower
+__label__fly_down drop
+
+__label__rotate_clockwise rotate clockwise
+__label__rotate_clockwise turn clockwise
+__label__rotate_clockwise spin clockwise
+__label__rotate_clockwise rotate right
+__label__rotate_clockwise turn right
+
+__label__rotate_counterclockwise rotate counterclockwise
+__label__rotate_counterclockwise rotate counter clockwise
+__label__rotate_counterclockwise turn counterclockwise
+__label__rotate_counterclockwise spin counterclockwise
+__label__rotate_counterclockwise rotate left
+__label__rotate_counterclockwise turn left
+
+__label__land land
+__label__land touch down
+__label__land come down
+__label__land set down
+__label__land please land
+__label__land land now
+__label__land land the drone
+
+__label__takeoff take off
+__label__takeoff takeoff
+__label__takeoff launch
+__label__takeoff lift off
+__label__takeoff start
+__label__takeoff please take off
+__label__takeoff take off now
+
+__label__stop stop
+__label__stop stop now
+__label__stop emergency stop
+__label__stop halt
+__label__stop halt now
+__label__stop please halt
+__label__stop halt the drone
+__label__stop halt immediately
+
+__label__arm arm
+__label__arm arm the drone
+__label__arm initialize
+__label__arm start motors
+__label__arm please arm
+__label__arm arm now

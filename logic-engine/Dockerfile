@@ -25,7 +25,8 @@ RUN pip install --no-cache-dir \
     pytest \
     pytest-asyncio \
     colorama \
-    numpy
+    numpy \
+    fasttext
 
 WORKDIR /app
 COPY . .
