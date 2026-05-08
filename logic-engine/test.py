@@ -5,6 +5,7 @@ import os
 from mavsdk import System
 from command_handler import txt_to_cmd
 from drone_connection import connect_and_wait_for_ready
+from collision_handler import watch_distance
 import math
 
 # To run tests:
@@ -12,6 +13,8 @@ import math
 # 2. docker compose exec logic-engine pytest -s test.py
 
 SITL_ADDRESS = "tcpout://sim:5790"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+command_file = os.path.join(BASE_DIR, 'commands.json')
 
 @pytest_asyncio.fixture(scope="function")
 async def drone():
@@ -49,7 +52,7 @@ async def test_takeoff_and_altitude(drone):
         break
     
     # send takeoff command
-    takeoff_cmd = {"action": "takeoff"}
+    takeoff_cmd = {"action": "take off"}
     await txt_to_cmd(drone, takeoff_cmd)
     await asyncio.sleep(5) 
 
@@ -59,6 +62,37 @@ async def test_takeoff_and_altitude(drone):
         print(f"Current altitude: {altitude:.2f} m")
         assert altitude > 2.5, f"Drone failed to take off properly, altitude is only {altitude:.2f} m"
         break
+
+#-----Test for sensor_forward--------#
+@pytest.mark.asyncio
+async def test_forward_sensor(drone):
+
+    async for in_air in drone.telemetry.in_air():
+        assert in_air, "Drone was not in air!"
+        break
+
+    async for pos in drone.telemetry.position_velocity_ned():
+        start = pos.position
+        break
+
+    # We ask drone to fly 20m but want it to stop after 6-7m
+    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 20, "unit": "meters"}
+    await txt_to_cmd(drone, fly_fwd_cmd)
+    await asyncio.sleep(10)
+
+    async for pos in drone.telemetry.position_velocity_ned():
+        end = pos.position
+        
+        dist_moved = math.sqrt(
+            (end.north_m - start.north_m)**2 + 
+            (end.east_m - start.east_m)**2
+        )
+        
+        print(f"Drone flyed {dist_moved:.2f}m before it stopped")
+        
+        assert 7 < dist_moved < 9, f"Sensor did not stop the drone correct! Drone flew {dist_moved}m"
+        break
+    
 
 #-----Test for cmd_fly--------#
 @pytest.mark.asyncio
@@ -265,7 +299,7 @@ async def test_rotate_counter_clockwise(drone):
         start_heading = h.heading_deg
         break
 
-    rotate_cmd = {"action": "rotate", "direction": "counter-clockwise"}
+    rotate_cmd = {"action": "rotate", "direction": "counter clockwise"}
     await txt_to_cmd(drone, rotate_cmd)
     await asyncio.sleep(3)
     
@@ -281,6 +315,7 @@ async def test_rotate_counter_clockwise(drone):
 
     # Check if the difference is approximately 90 degrees (allowing for some margin of error)
     assert abs(diff + 90) < 5, f"Rotation was {diff:.1f} degrees, expected ~90"
+
 
 #-----Test for cmd_land--------#
 @pytest.mark.asyncio

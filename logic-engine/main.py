@@ -4,6 +4,7 @@ from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand, stop_hover
 from drone_connection import connect_and_wait_for_ready
 import json
+from collision_handler import watch_distance_fwd, watch_distance_up, watch_distance_down
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 command_file = os.path.join(BASE_DIR, 'commands.json')
@@ -39,11 +40,15 @@ async def run():
     address = os.getenv("SITL_ADDRESS", "tcpout://sim:5790")
 
     print("Logic Engine Booting Up...")
-    for i in range(30, 0, -1):
+    for i in range(20, 0, -1):
         print(f"Connecting in {i} seconds...")
         await asyncio.sleep(1)
 
     drone = await connect_and_wait_for_ready(address)
+
+    asyncio.create_task(watch_distance_fwd())
+    asyncio.create_task(watch_distance_up())
+    asyncio.create_task(watch_distance_down())
 
     asyncio.ensure_future(print_flight_mode(drone))
     asyncio.ensure_future(cmd_handler(drone))
