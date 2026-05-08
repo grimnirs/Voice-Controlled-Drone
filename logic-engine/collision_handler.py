@@ -35,7 +35,7 @@ def stopping_distance(current_velocity: float, direction: str) -> float:
         "down":     0.6,   # was 1.5 - gravity actively assists descent
     }
     SAFETY_MARGIN = {
-        "forward":  0.5,   # was 0.3
+        "forward":  3,   # was 0.3
         "up":       1.0,   # was 0.5 - needs much more room
         "down":     1.2,   # was 0.7
     }
@@ -139,7 +139,6 @@ async def watch_distance_down():
     print("Starting collision handler (down)...")
     while True:
         try:
-            if SENSORS_ENABLED:
                 down_readings = get_down_distance()
                 if down_readings is not None:
                     if down_readings <= 2.0:
