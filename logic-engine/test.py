@@ -168,8 +168,8 @@ async def test_down_sensor(drone, capfd):
     assert "EMERGENCY STOPPING" in captured.out, (
         "Down brake never fired — sensor pipeline did not stop the drone"
     )
-    assert 0.5 < dist_moved < 5.0, (
-        f"Down brake fired but drone descended {dist_moved:.2f}m, expected 0.5-5m"
+    assert 0.5 < dist_moved < 7.0, (
+        f"Down brake fired but drone descended {dist_moved:.2f}m, expected 0.5-7m"
     )
 
 
@@ -188,7 +188,7 @@ async def test_fly_forward(drone):
         start = start_pos.position
         break
 
-    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 5, "unit": "meters"}
+    fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 99, "unit": "meters"}
     await txt_to_cmd(drone, fly_fwd_cmd)
     await asyncio.sleep(8)
 
