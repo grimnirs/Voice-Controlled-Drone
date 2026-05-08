@@ -1,0 +1,369 @@
+__label__fly_forward continue straight ahead
+__label__fly_forward advance forward slowly
+__label__fly_forward proceed ahead about 4 meters
+__label__fly_forward continue ahead for 5 meters
+__label__fly_forward proceed straight forward
+__label__fly_forward move farther ahead
+__label__fly_forward push forward ten feet
+__label__fly_forward glide straight ahead
+__label__fly_forward move in a forward direction
+__label__fly_forward keep going front
+__label__fly_forward keep heading forward please
+__label__fly_forward can you go forward a bit
+__label__fly_forward just go straight
+__label__fly_forward move up ahead
+__label__fly_forward nose forward
+__label__fly_forward go forward now
+__label__fly_forward a little further ahead
+__label__fly_forward keep flying straight
+__label__fly_forward let it move forward
+__label__fly_forward send it forward
+__label__fly_forward proceed north
+__label__fly_forward take it forward two meters
+__label__fly_forward continue on its current path
+__label__fly_forward cruise forward
+__label__fly_forward fast forward a couple meters
+__label__fly_forward push it ahead
+__label__fly_forward go further ahead
+__label__fly_forward dart forward
+__label__fly_forward jet ahead
+__label__fly_forward propel forward
+
+__label__fly_left slide toward the left side
+__label__fly_left shift left a little
+__label__fly_left move west 3 meters
+__label__fly_left shift west slightly
+__label__fly_left move sideways toward the left
+__label__fly_left sidestep to the left
+__label__fly_left drift left by five meters
+__label__fly_left move toward the port side
+__label__fly_left strafe left immediately
+__label__fly_left go a bit to the left
+__label__fly_left nudge it left please
+__label__fly_left just move left a touch
+__label__fly_left slide it over to the left
+__label__fly_left ease left
+__label__fly_left move it left slightly
+__label__fly_left a little to the left
+__label__fly_left shift over left
+__label__fly_left scoot left
+__label__fly_left push it to the left
+__label__fly_left go left a meter
+__label__fly_left veer to the left a bit
+__label__fly_left head to the west
+__label__fly_left left a little
+__label__fly_left left please
+__label__fly_left take it left
+
+__label__fly_right slide toward the right side
+__label__fly_right shift right slightly
+__label__fly_right move east 4 meters
+__label__fly_right shift east slightly
+__label__fly_right move sideways toward the right
+__label__fly_right move toward the starboard side
+__label__fly_right shift right about six feet
+__label__fly_right slide to the right side
+__label__fly_right drift right slightly
+__label__fly_right go a bit to the right
+__label__fly_right nudge it right please
+__label__fly_right just move right a touch
+__label__fly_right slide it over to the right
+__label__fly_right ease right
+__label__fly_right move it right slightly
+__label__fly_right a little to the right
+__label__fly_right shift over right
+__label__fly_right scoot right
+__label__fly_right push it to the right
+__label__fly_right go right a meter
+__label__fly_right veer to the right a bit
+__label__fly_right head to the east
+__label__fly_right right a little
+__label__fly_right right please
+__label__fly_right take it right
+
+__label__fly_up gain altitude
+__label__fly_up increase height by 2 meters
+__label__fly_up raise the drone upward
+__label__fly_up raise altitude gradually
+__label__fly_up climb upward by 3 meters
+__label__fly_up gain more height
+__label__fly_up climb to a higher altitude
+__label__fly_up raise your current height
+__label__fly_up go up ten meters
+__label__fly_up increase your elevation
+__label__fly_up can you go a bit higher
+__label__fly_up just go up please
+__label__fly_up up a little more
+__label__fly_up higher please
+__label__fly_up take it higher
+__label__fly_up get some more altitude
+__label__fly_up we need more height
+__label__fly_up push up a bit
+__label__fly_up up two meters
+__label__fly_up ascend a bit more
+__label__fly_up jack it up higher
+__label__fly_up get above the treeline
+__label__fly_up rise up
+__label__fly_up elevate some
+__label__fly_up higher up now
+__label__fly_up float up some
+__label__fly_up boost up
+__label__fly_up go way up
+__label__fly_up zoom up a few meters
+
+__label__fly_down reduce altitude
+__label__fly_down lower yourself carefully
+__label__fly_down descend toward the ground
+__label__fly_down reduce height slowly
+__label__fly_down descend toward the surface
+__label__fly_down lower the drone carefully
+__label__fly_down drop down lower
+__label__fly_down descend to three meters
+__label__fly_down sink slowly toward the floor
+__label__fly_down decrease current altitude
+__label__fly_down can you come down a bit
+__label__fly_down just go a little lower
+__label__fly_down lower please
+__label__fly_down bring it down some
+__label__fly_down drop it down
+__label__fly_down lose some altitude
+__label__fly_down come down to two meters
+__label__fly_down dip lower
+__label__fly_down we need to go lower
+__label__fly_down descend a bit more
+__label__fly_down sink a little
+__label__fly_down down a bit please
+__label__fly_down take it down some
+__label__fly_down bring her down
+__label__fly_down float down please
+
+__label__fly_backward retreat backward
+__label__fly_backward reverse direction slowly
+__label__fly_backward move away from current position
+__label__fly_backward move backward slowly
+__label__fly_backward reverse away from here
+__label__fly_backward travel in reverse
+__label__fly_backward back up slowly
+__label__fly_backward move to the rear
+__label__fly_backward reverse for two meters
+__label__fly_backward shift backward away from the wall
+__label__fly_backward pull it back
+__label__fly_backward come back a little
+__label__fly_backward go back a meter or two
+__label__fly_backward back off
+__label__fly_backward move it backward please
+__label__fly_backward back away from that
+__label__fly_backward reverse out slowly
+__label__fly_backward just back up
+__label__fly_backward head rearward
+__label__fly_backward move in the opposite direction
+__label__fly_backward go the other way
+__label__fly_backward take it south
+__label__fly_backward back it up
+__label__fly_backward reverse a bit
+__label__fly_backward pull back now
+
+__label__rotate_clockwise yaw right 90 degrees
+__label__rotate_clockwise rotate toward starboard
+__label__rotate_clockwise make a clockwise turn
+__label__rotate_clockwise rotate toward the right side
+__label__rotate_clockwise rotate right on axis
+__label__rotate_clockwise pivot to the right
+__label__rotate_clockwise spin ninety degrees clockwise
+__label__rotate_clockwise turn toward the right
+__label__rotate_clockwise change heading to the right
+__label__rotate_clockwise turn it to the right
+__label__rotate_clockwise rotate it clockwise please
+__label__rotate_clockwise spin it right
+__label__rotate_clockwise face it to the right
+__label__rotate_clockwise spin clockwise a little
+__label__rotate_clockwise do a clockwise yaw
+__label__rotate_clockwise make a right rotation
+__label__rotate_clockwise swing it right
+__label__rotate_clockwise quarter spin to the right
+__label__rotate_clockwise turn it right on its axis
+__label__rotate_clockwise yaw it to the right
+
+__label__rotate_counterclockwise yaw left 90 degrees
+__label__rotate_counterclockwise rotate toward port side
+__label__rotate_counterclockwise make a counterclockwise turn
+__label__rotate_counterclockwise rotate left slowly
+__label__rotate_counterclockwise rotate left on axis
+__label__rotate_counterclockwise pivot to the left
+__label__rotate_counterclockwise spin ninety degrees counterclockwise
+__label__rotate_counterclockwise turn toward the left
+__label__rotate_counterclockwise rotate left on the spot
+__label__rotate_counterclockwise turn it to the left
+__label__rotate_counterclockwise rotate it counterclockwise please
+__label__rotate_counterclockwise spin it left
+__label__rotate_counterclockwise face it to the left
+__label__rotate_counterclockwise spin counterclockwise a little
+__label__rotate_counterclockwise do a counterclockwise yaw
+__label__rotate_counterclockwise make a left rotation
+__label__rotate_counterclockwise swing it left
+__label__rotate_counterclockwise quarter spin to the left
+__label__rotate_counterclockwise turn it left on its axis
+__label__rotate_counterclockwise yaw it to the left
+
+__label__land bring the drone down safely
+__label__land end the flight and land
+__label__land prepare for touchdown
+__label__land bring the drone back down
+__label__land safely complete the landing
+__label__land execute landing sequence
+__label__land descend and touch down
+__label__land settle onto the landing pad
+__label__land terminate flight and land
+__label__land okay now land please
+__label__land bring it in for a landing
+__label__land let it land
+__label__land can you land it now
+__label__land put it on the ground
+__label__land set it down gently
+__label__land land the thing
+__label__land we are done flying land now
+__label__land find a spot and land
+__label__land make it land
+__label__land bring her home and land
+__label__land time to land
+__label__land return and land
+__label__land head to ground
+__label__land go to the ground now
+__label__land touch the ground please
+
+__label__takeoff begin flight operations
+__label__takeoff get airborne now
+__label__takeoff start flying upward
+__label__takeoff begin takeoff procedure
+__label__takeoff rise into the air
+__label__takeoff initiate launch sequence
+__label__takeoff start the takeoff process
+__label__takeoff lift off into the air
+__label__takeoff begin your ascent from ground
+__label__takeoff go ahead and take off
+__label__takeoff lets get it in the air
+__label__takeoff ready to go now take off
+__label__takeoff launch it
+__label__takeoff get it up
+__label__takeoff send it up
+__label__takeoff fly it up
+__label__takeoff its time to take off
+__label__takeoff get off the ground now
+__label__takeoff liftoff please
+__label__takeoff start takeoff
+__label__takeoff take it up into the air
+__label__takeoff go now
+__label__takeoff rise and fly
+__label__takeoff get it airborne
+__label__takeoff up and away
+
+__label__stop freeze all movement now
+__label__stop cancel current motion immediately
+__label__stop stay in place right now
+__label__stop maintain current position
+__label__stop freeze all drone movement
+__label__stop halt all drone activity
+__label__stop kill all movement
+__label__stop hover in place
+__label__stop break immediately
+__label__stop abort movement immediately
+__label__stop kill all motor rotation
+__label__stop stop the drone right now
+__label__stop execute emergency stop
+__label__stop cease all flight operations
+__label__stop aaaaah
+__label__stop stop stop stop
+__label__stop hold it
+__label__stop wait wait wait
+__label__stop no no stop
+__label__stop freeze it right there
+__label__stop cut all movement
+__label__stop okay stop moving
+__label__stop do not go anywhere
+__label__stop hold on dont move
+__label__stop stay exactly here
+__label__stop kill it now
+__label__stop emergency halt
+__label__stop cease and desist
+__label__stop stand down
+__label__stop wait right there
+__label__stop lock it in place
+__label__stop freeze drone now
+__label__stop stop the thing
+__label__stop just stop
+__label__stop stop immediately please
+__label__stop halt right now
+__label__stop do not move at all
+__label__stop stay there
+__label__stop no movement allowed
+
+__label__arm power on the flight system
+__label__arm activate the drone motors
+__label__arm enable flight controls
+__label__arm power up all motors
+__label__arm activate drone motors
+__label__arm engage the motor system
+__label__arm prepare for motor start
+__label__arm ready the flight controls
+__label__arm initialize propulsion system
+__label__arm get the motors running
+__label__arm spin up the rotors
+__label__arm start the propellers
+__label__arm power the drone on
+__label__arm wake the drone up
+__label__arm get the drone ready
+__label__arm activate all systems
+__label__arm arm it now
+__label__arm get it armed
+__label__arm ready the drone
+__label__arm boot drone
+__label__arm start systems
+__label__arm prepare for flight
+__label__arm turn on all motors
+__label__arm engage flight systems
+__label__arm initialize all controls
+__label__arm start propulsion system
+__label__arm get it powered
+__label__arm power everything on
+__label__arm bring systems online
+
+__label__unknown how old are you
+__label__unknown find a recipe for pizza
+__label__unknown what is the capital of France
+__label__unknown what time does the movie start
+__label__unknown remind me to buy milk
+__label__unknown who won the game last night
+__label__unknown tell me a riddle
+__label__unknown how do i bake a cake
+__label__unknown turn the lights off
+__label__unknown play my favorite playlist
+__label__unknown what is two plus two
+__label__unknown open youtube
+__label__unknown send an email
+__label__unknown schedule a meeting
+__label__unknown what song is this
+__label__unknown who is the president
+__label__unknown search for hotels nearby
+__label__unknown call the police
+__label__unknown translate this to Spanish
+__label__unknown what does this word mean
+__label__unknown show me the news
+__label__unknown read me a story
+__label__unknown set the timer for ten minutes
+__label__unknown check the traffic
+__label__unknown what movies are playing
+__label__unknown buy me a coffee
+__label__unknown track my package
+__label__unknown add to my shopping list
+__label__unknown turn up the heat
+__label__unknown open my calendar
+__label__unknown good morning
+__label__unknown good night
+__label__unknown thanks
+__label__unknown nice job
+__label__unknown are you listening
+__label__unknown do you understand me
+__label__unknown that is not what I asked
+__label__unknown you got it wrong
+__label__unknown very good
+__label__unknown perfect

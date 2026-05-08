@@ -175,6 +175,7 @@ def main():
             if is_active:
                 cleaned = RE_TRIGGERS.sub('', rolling_buffer).strip()
                 if has_over:
+                    t_start = time.time()
                     print(f"DEBUG predict input: '{cleaned}'")
                     #train_data = map_intent(cleaned)
                     intent, confidence = predict(cleaned)
@@ -203,6 +204,8 @@ def main():
                                 structured.update({"integer": None, "unit": None})
                                 append_command(structured)
                                 print(f"✓ Command: {structured}")
+                                t_end = time.time()
+                                print(f"LATENCY: {(t_end - t_start) * 1000:.1f}ms")
                             
                             else:
                                 words = [w.strip(string.punctuation) for w in cleaned.split()]
@@ -213,6 +216,8 @@ def main():
                                     structured.update({"integer": integer, "unit": unit})     
                                     append_command(structured)
                                     print(f"✓ Command: {structured}")
+                                    t_end = time.time()
+                                    print(f"LATENCY: {(t_end - t_start) * 1000:.1f}ms")
                                 else:
                                     print(f"DEBUG: Missing distance or unit for '{action}'")
                         else:

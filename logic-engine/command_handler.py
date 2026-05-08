@@ -15,7 +15,7 @@ ACTIONS = {
     "arm":str,
     "start":str,
     "take off":str,
-    "takeoff":str,  # Tillagt från espana
+    "takeoff":str,  # Tillagt från espa
     "land":str,
     "fly":str,
     "rotate":str,

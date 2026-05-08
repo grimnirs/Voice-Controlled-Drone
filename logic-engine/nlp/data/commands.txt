@@ -1,97 +1,450 @@
 __label__fly_forward fly forward
 __label__fly_forward move forward
 __label__fly_forward go forward
-__label__fly_forward move ahead
-__label__fly_forward go ahead
+__label__fly_forward continue forward
+__label__fly_forward proceed ahead
+__label__fly_forward move straight ahead
+__label__fly_forward advance forward
+__label__fly_forward continue straight
 __label__fly_forward head forward
-__label__fly_forward fly ahead
+__label__fly_forward move onward
+__label__fly_forward travel forward
+__label__fly_forward keep moving forward
+__label__fly_forward push forward
 __label__fly_forward go straight
-__label__fly_forward move straight
-
-__label__fly_left fly left
-__label__fly_left go left
-__label__fly_left move left
-__label__fly_left turn left
-__label__fly_left head left
-__label__fly_left drift left
-__label__fly_left move to the left
-__label__fly_left go to the left
-
-__label__fly_right fly right
-__label__fly_right go right
-__label__fly_right move right
-__label__fly_right turn right
-__label__fly_right head right
-__label__fly_right drift right
-__label__fly_right move to the right
-__label__fly_right go to the right
+__label__fly_forward straight ahead
+__label__fly_forward keep going forward
+__label__fly_forward move in a forward direction
+__label__fly_forward head straight
+__label__fly_forward go north
+__label__fly_forward head north
+__label__fly_forward move north
+__label__fly_forward press forward
+__label__fly_forward advance ahead
+__label__fly_forward go in front
+__label__fly_forward fly ahead
+__label__fly_forward zoom forward
+__label__fly_forward inch forward
+__label__fly_forward creep forward
+__label__fly_forward nudge forward
+__label__fly_forward drift forward
+__label__fly_forward launch forward
+__label__fly_forward charge ahead
+__label__fly_forward continue your path
+__label__fly_forward stay on course forward
+__label__fly_forward keep the heading
+__label__fly_forward maintain forward direction
 
 __label__fly_backward fly backward
-__label__fly_backward fly backwards
-__label__fly_backward go backward
-__label__fly_backward go backwards
 __label__fly_backward move backward
-__label__fly_backward move backwards
 __label__fly_backward go backward
-__label__fly_backward go backwards
+__label__fly_backward reverse direction
+__label__fly_backward move in reverse
+__label__fly_backward travel backward
+__label__fly_backward retreat backward
+__label__fly_backward head backward
+__label__fly_backward pull back
+__label__fly_backward go back
 __label__fly_backward back up
+__label__fly_backward back away
+__label__fly_backward move rearward
+__label__fly_backward go behind
 __label__fly_backward reverse
+__label__fly_backward fly back
+__label__fly_backward move to the rear
+__label__fly_backward go south
+__label__fly_backward head south
+__label__fly_backward move south
+__label__fly_backward recede backward
+__label__fly_backward withdraw backward
+__label__fly_backward retreat rearward
+__label__fly_backward step backward
+__label__fly_backward glide back
+__label__fly_backward slide back
+__label__fly_backward inch backward
+__label__fly_backward creep backward
+__label__fly_backward nudge backward
+__label__fly_backward drift backward
+
+__label__fly_left fly left
+__label__fly_left move left
+__label__fly_left drift left
+__label__fly_left strafe left
+__label__fly_left shift left
+__label__fly_left slide left
+__label__fly_left move sideways left
+__label__fly_left sidestep left
+__label__fly_left travel left
+__label__fly_left head west
+__label__fly_left go left
+__label__fly_left bank left
+__label__fly_left veer left
+__label__fly_left lean left
+__label__fly_left cut left
+__label__fly_left swing left
+__label__fly_left go west
+__label__fly_left move west
+__label__fly_left fly west
+__label__fly_left navigate left
+__label__fly_left edge left
+__label__fly_left nudge left
+__label__fly_left inch left
+__label__fly_left creep left
+__label__fly_left glide left
+__label__fly_left push left
+__label__fly_left sweep left
+__label__fly_left move to the left
+__label__fly_left go to the left side
+__label__fly_left move toward the left
+__label__fly_left head to the left
+__label__fly_left toward the port side
+__label__fly_left move portward
+
+__label__fly_right fly right
+__label__fly_right move right
+__label__fly_right drift right
+__label__fly_right strafe right
+__label__fly_right shift right
+__label__fly_right slide right
+__label__fly_right move sideways right
+__label__fly_right sidestep right
+__label__fly_right travel right
+__label__fly_right head east
+__label__fly_right go right
+__label__fly_right bank right
+__label__fly_right veer right
+__label__fly_right lean right
+__label__fly_right cut right
+__label__fly_right swing right
+__label__fly_right go east
+__label__fly_right move east
+__label__fly_right fly east
+__label__fly_right navigate right
+__label__fly_right edge right
+__label__fly_right nudge right
+__label__fly_right inch right
+__label__fly_right creep right
+__label__fly_right glide right
+__label__fly_right push right
+__label__fly_right sweep right
+__label__fly_right move to the right
+__label__fly_right go to the right side
+__label__fly_right move toward the right
+__label__fly_right head to the right
+__label__fly_right toward the starboard side
+__label__fly_right move starboard
 
 __label__fly_up fly up
-__label__fly_up go up
-__label__fly_up move up
 __label__fly_up ascend
-__label__fly_up rise
-__label__fly_up climb
+__label__fly_up climb higher
+__label__fly_up gain altitude
+__label__fly_up rise upward
+__label__fly_up increase altitude
+__label__fly_up go higher
+__label__fly_up elevate
+__label__fly_up lift upward
+__label__fly_up rise vertically
+__label__fly_up ascend vertically
+__label__fly_up gain more height
+__label__fly_up go up
+__label__fly_up raise the drone
+__label__fly_up move upward
+__label__fly_up climb up
+__label__fly_up go higher up
+__label__fly_up take it higher
+__label__fly_up increase height
+__label__fly_up boost altitude
+__label__fly_up push up
+__label__fly_up move up
+__label__fly_up head upward
+__label__fly_up shoot up
+__label__fly_up soar higher
+__label__fly_up lift higher
+__label__fly_up climb some more
+__label__fly_up go further up
+__label__fly_up add altitude
+__label__fly_up zoom up
+__label__fly_up float up
+__label__fly_up rise higher
+__label__fly_up get higher
+__label__fly_up jump up
+__label__fly_up go upward
 
 __label__fly_down fly down
-__label__fly_down go down
-__label__fly_down move down
 __label__fly_down descend
-__label__fly_down lower
-__label__fly_down drop
+__label__fly_down lower altitude
+__label__fly_down reduce altitude
+__label__fly_down go lower
+__label__fly_down sink downward
+__label__fly_down decrease height
+__label__fly_down descend slowly
+__label__fly_down go below
+__label__fly_down sink vertically
+__label__fly_down move down
+__label__fly_down head downward
+__label__fly_down lose altitude
+__label__fly_down drop down
+__label__fly_down come down
+__label__fly_down go down
+__label__fly_down come lower
+__label__fly_down drop altitude
+__label__fly_down float down
+__label__fly_down drift downward
+__label__fly_down sink lower
+__label__fly_down reduce height
+__label__fly_down decrease altitude
+__label__fly_down lower the drone
+__label__fly_down bring it down a bit
+__label__fly_down take it lower
+__label__fly_down fly lower
+__label__fly_down dip down
+__label__fly_down glide downward
 
 __label__rotate_clockwise rotate clockwise
-__label__rotate_clockwise turn clockwise
 __label__rotate_clockwise spin clockwise
+__label__rotate_clockwise yaw right
 __label__rotate_clockwise rotate right
+__label__rotate_clockwise turn in place right
+__label__rotate_clockwise clockwise rotation
+__label__rotate_clockwise pivot right
+__label__rotate_clockwise spin to the right
+__label__rotate_clockwise rotate on axis right
+__label__rotate_clockwise rotate toward starboard
 __label__rotate_clockwise turn right
+__label__rotate_clockwise spin right
+__label__rotate_clockwise turn clockwise
+__label__rotate_clockwise face right
+__label__rotate_clockwise look right
+__label__rotate_clockwise swing right on axis
+__label__rotate_clockwise rotate your heading right
+__label__rotate_clockwise twist right
+__label__rotate_clockwise turn heading right
+__label__rotate_clockwise change heading clockwise
+__label__rotate_clockwise spin on the spot right
+__label__rotate_clockwise make a right turn in place
+__label__rotate_clockwise yaw clockwise
+__label__rotate_clockwise do a right yaw
+__label__rotate_clockwise rotate right on the spot
+__label__rotate_clockwise quarter turn right
+__label__rotate_clockwise half turn right
 
 __label__rotate_counterclockwise rotate counterclockwise
-__label__rotate_counterclockwise rotate counter clockwise
-__label__rotate_counterclockwise turn counterclockwise
 __label__rotate_counterclockwise spin counterclockwise
+__label__rotate_counterclockwise yaw left
 __label__rotate_counterclockwise rotate left
+__label__rotate_counterclockwise turn in place left
+__label__rotate_counterclockwise counterclockwise rotation
+__label__rotate_counterclockwise pivot left
+__label__rotate_counterclockwise spin to the left
+__label__rotate_counterclockwise rotate on axis left
+__label__rotate_counterclockwise rotate toward port
 __label__rotate_counterclockwise turn left
+__label__rotate_counterclockwise spin left
+__label__rotate_counterclockwise turn counterclockwise
+__label__rotate_counterclockwise face left
+__label__rotate_counterclockwise look left
+__label__rotate_counterclockwise swing left on axis
+__label__rotate_counterclockwise rotate your heading left
+__label__rotate_counterclockwise twist left
+__label__rotate_counterclockwise turn heading left
+__label__rotate_counterclockwise change heading counterclockwise
+__label__rotate_counterclockwise spin on the spot left
+__label__rotate_counterclockwise make a left turn in place
+__label__rotate_counterclockwise yaw counterclockwise
+__label__rotate_counterclockwise do a left yaw
+__label__rotate_counterclockwise rotate left on the spot
+__label__rotate_counterclockwise quarter turn left
+__label__rotate_counterclockwise half turn left
+
+__label__takeoff take off
+__label__takeoff launch
+__label__takeoff lift off
+__label__takeoff get airborne
+__label__takeoff leave the ground
+__label__takeoff initiate takeoff
+__label__takeoff rise from ground
+__label__takeoff initiate flight
+__label__takeoff depart ground
+__label__takeoff power up for flight
+__label__takeoff enter flight mode
+__label__takeoff initiate takeoff sequence
+__label__takeoff system launch
+__label__takeoff departure from ground
+__label__takeoff start flight operations
+__label__takeoff takeoff now
+__label__takeoff lift off from base
+__label__takeoff go airborne
+__label__takeoff spin up and fly
+__label__takeoff begin flight
+__label__takeoff start flying
+__label__takeoff get off the ground
+__label__takeoff leave the surface
+__label__takeoff ascend from ground
+__label__takeoff take flight
+__label__takeoff launch into the air
+__label__takeoff begin ascent
+__label__takeoff start your ascent
+__label__takeoff initiate launch
+__label__takeoff prepare for liftoff
+__label__takeoff liftoff now
+__label__takeoff go fly
+__label__takeoff launch sequence go
+__label__takeoff it is time to fly
+__label__takeoff rise from the surface
+__label__takeoff get up in the air
+__label__takeoff fly upward from ground
 
 __label__land land
 __label__land touch down
-__label__land come down
-__label__land set down
-__label__land please land
-__label__land land now
+__label__land perform landing
+__label__land descend for landing
+__label__land return to ground
+__label__land settle on ground
+__label__land finish flight
+__label__land land safely
+__label__land begin landing
+__label__land complete landing
+__label__land come down for landing
+__label__land bring it down
+__label__land initiate landing
 __label__land land the drone
-
-__label__takeoff take off
-__label__takeoff takeoff
-__label__takeoff launch
-__label__takeoff lift off
-__label__takeoff start
-__label__takeoff please take off
-__label__takeoff take off now
+__label__land end the flight
+__label__land set down
+__label__land ground the drone
+__label__land return to base
+__label__land land on the pad
+__label__land put it down
+__label__land touch the ground
+__label__land settle down
+__label__land come in for landing
+__label__land execute landing
+__label__land bring the drone home
+__label__land descend and land
+__label__land land here
+__label__land terminate and land
+__label__land stop and land
+__label__land plant it on the ground
+__label__land set the drone down
 
 __label__stop stop
-__label__stop stop now
+__label__stop halt movement
+__label__stop freeze movement
+__label__stop remain stationary
+__label__stop stop immediately
+__label__stop hold position
+__label__stop cease movement
 __label__stop emergency stop
-__label__stop halt
-__label__stop halt now
-__label__stop please halt
-__label__stop halt the drone
-__label__stop halt immediately
+__label__stop stay still
+__label__stop freeze all motion
+__label__stop full stop
+__label__stop emergency kill switch
+__label__stop execute emergency brake
+__label__stop abort all flight tasks
+__label__stop halt all systems
+__label__stop kill the motors now
+__label__stop immediate suspension of movement
+__label__stop stay exactly where you are
+__label__stop do not move an inch
+__label__stop stop drone activity
+__label__stop freeze all operations
+__label__stop do not move
+__label__stop stay put
+__label__stop hold still
+__label__stop pause
+__label__stop do not go anywhere
+__label__stop hover
+__label__stop hover in place
+__label__stop hold your position
+__label__stop maintain position
+__label__stop kill power
+__label__stop cut it
+__label__stop whoa
+__label__stop stop now
+__label__stop abort
+__label__stop cut engines
+__label__stop cut motors
+__label__stop kill motors
+__label__stop shut down motors
+__label__stop be still
+__label__stop no movement
+__label__stop do not fly
+__label__stop stand by
+__label__stop wait here
+__label__stop stay right there
+__label__stop freeze right there
+__label__stop dont move
+__label__stop lock position
+__label__stop stop everything
 
-__label__arm arm
+__label__arm arm drone
+__label__arm initialize motors
+__label__arm activate motors
+__label__arm power on drone
+__label__arm enable flight system
+__label__arm prepare motors
+__label__arm engage drone systems
+__label__arm activate flight controls
+__label__arm start propulsion
+__label__arm enable motors
+__label__arm initialize flight system
 __label__arm arm the drone
-__label__arm initialize
 __label__arm start motors
-__label__arm please arm
-__label__arm arm now
+__label__arm power up motors
+__label__arm enable propulsion
+__label__arm spin up motors
+__label__arm get motors ready
+__label__arm prepare for flight
+__label__arm ready the drone
+__label__arm boot up the drone
+__label__arm start up
+__label__arm power on
+__label__arm wake up the drone
+__label__arm init drone
+__label__arm activate systems
+__label__arm enable systems
+__label__arm initialize systems
+__label__arm engage motors
+__label__arm start the motors
+__label__arm prepare to launch
+__label__arm get ready to fly
+__label__arm system arm
+__label__arm arm up
+__label__arm get the motors going
+__label__arm spin up
+__label__arm activate flight mode
+
+__label__unknown what time is it
+__label__unknown play music
+__label__unknown open the camera
+__label__unknown tell me a joke
+__label__unknown what is the weather
+__label__unknown increase volume
+__label__unknown search the internet
+__label__unknown turn on bluetooth
+__label__unknown what day is it today
+__label__unknown set an alarm
+__label__unknown call my mom
+__label__unknown open an app
+__label__unknown send a text
+__label__unknown take a photo
+__label__unknown record a video
+__label__unknown turn on the lights
+__label__unknown what is the temperature
+__label__unknown connect to wifi
+__label__unknown check my email
+__label__unknown set a reminder
+__label__unknown how do I get home
+__label__unknown order food
+__label__unknown navigate to the nearest gas station
+__label__unknown what is the news today
+__label__unknown calculate ten percent of fifty
+__label__unknown how old are you
+__label__unknown who made you
+__label__unknown find a recipe for pasta
+__label__unknown play some jazz
+__label__unknown dim the lights
+__label__unknown are you there
+__label__unknown hello
+__label__unknown what can you do
+__label__unknown tell me something interesting
+__label__unknown what is the meaning of life
