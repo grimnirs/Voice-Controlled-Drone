@@ -5,6 +5,7 @@ import os
 import string
 import re
 import subprocess
+import time
 
 
 #tanken är att vi ska importa 
@@ -178,6 +179,7 @@ def main():
 
     try:
         for raw_line in proc.stdout:
+            t_chunk = time.time()
             chunk = raw_line.lower().strip()
             if not chunk:
                 continue
@@ -218,6 +220,7 @@ def main():
                 # print(f"DEBUG cleaned: '{cleaned}'")
 
                 if has_over:
+                    t_trigger = t_chunk  # whisper-stream emitted the chunk that completed the command
                     full_command = " ".join(command_buffer) + " " + cleaned
                     full_command = full_command.strip()
 
@@ -231,15 +234,19 @@ def main():
                                     "unit": None
                                 }
                             )
+                            structured["t_trigger"] = t_trigger
+                            structured["t_emit"] = time.time()
                             append_command(structured)
                         else:
                             words = [w.strip(string.punctuation) for w in full_command.split()]
                             integer = get_int(words)
                             unit = get_unit(words)
-                        
+
 
                             if integer and unit:
                                 structured.update({"integer": integer, "unit": unit})
+                                structured["t_trigger"] = t_trigger
+                                structured["t_emit"] = time.time()
                                 append_command(structured)
                                 print(f"✓ Command: {structured}")
                             else:

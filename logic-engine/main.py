@@ -1,5 +1,6 @@
 import os
 import asyncio
+import time
 from mavsdk import System
 from command_handler import txt_to_cmd, DroneCommand, stop_hover
 from drone_connection import connect_and_wait_for_ready
@@ -28,7 +29,19 @@ async def cmd_handler(drone):
                     new_commands = v_commands[last_idx + 1:]
                     last_idx = len(v_commands) - 1
                     for command in new_commands:
+                        t_read = time.time()
+                        t_trigger = command.get("t_trigger")
+                        t_emit = command.get("t_emit")
+
                         print(f"> > > New Voice Command: {command}")
+                        if t_trigger is not None and t_emit is not None:
+                            print(
+                                f"=== Pipeline latency (ms) ===\n"
+                                f"  trigger→emit (VTT processing): {(t_emit - t_trigger) * 1000:7.1f}\n"
+                                f"  emit→read    (JSON polling):   {(t_read - t_emit) * 1000:7.1f}\n"
+                                f"  trigger→read (total):          {(t_read - t_trigger) * 1000:7.1f}"
+                            )
+
                         await txt_to_cmd(drone, command)
 
             except (json.JSONDecodeError, Exception) as e:

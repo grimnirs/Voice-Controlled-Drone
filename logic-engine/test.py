@@ -2,10 +2,12 @@ import pytest
 import asyncio
 import pytest_asyncio
 import os
+import time
 from mavsdk import System
-from command_handler import txt_to_cmd
+from command_handler import txt_to_cmd, stop_hover
 from drone_connection import connect_and_wait_for_ready
 from collision_handler import get_forward_distance, get_up_distance, get_down_distance
+from latency_helpers import wait_for_linear_motion, wait_for_angular_motion
 import math
 
 # To run tests:
@@ -176,7 +178,7 @@ async def test_down_sensor(drone, capfd):
 
 #-----Test for cmd_fly--------#
 @pytest.mark.asyncio
-async def test_fly_forward(drone):
+async def test_fly_forward(drone, latency_recorder, latency_logger):
     # TODO: check if drone is flying, then move forward and check the position after a few seconds
     ##### Move 5m forwards #####
     # Get starting position
@@ -188,9 +190,18 @@ async def test_fly_forward(drone):
         start = start_pos.position
         break
 
+    # Stop residual hover from any prior test so its setpoints don't pollute the measurement.
+    await stop_hover()
+    latency_recorder.attach(drone)
+    latency_recorder.reset()
+
     fly_fwd_cmd = {"action": "fly", "direction": "forward", "integer": 99, "unit": "meters"}
-    await txt_to_cmd(drone, fly_fwd_cmd)
-    await asyncio.sleep(8)
+    t_dispatch = time.perf_counter()
+    cmd_task = asyncio.create_task(txt_to_cmd(drone, fly_fwd_cmd))
+    t_motion = await wait_for_linear_motion(drone)
+    await cmd_task
+
+    latency_logger.log("test_fly_forward", t_dispatch, latency_recorder.t_first_setpoint, t_motion)
 
     # Get end position and use pythagoras theorem
     async for end_pos in drone.telemetry.position_velocity_ned():
@@ -345,7 +356,7 @@ async def test_fly_down(drone):
 
 #-----Test for cmd_rotate--------#
 @pytest.mark.asyncio
-async def test_rotate_clockwise(drone):
+async def test_rotate_clockwise(drone, latency_recorder, latency_logger):
     """Verifies that the drone rotates approximately 90 degrees clockwise."""
 
     # Get start heading
@@ -353,10 +364,18 @@ async def test_rotate_clockwise(drone):
         start_heading = h.heading_deg
         break
 
+    await stop_hover()
+    latency_recorder.attach(drone)
+    latency_recorder.reset()
+
     rotate_cmd = {"action": "rotate", "direction": "clockwise"}
-    await txt_to_cmd(drone, rotate_cmd)
-    await asyncio.sleep(3)
-    
+    t_dispatch = time.perf_counter()
+    cmd_task = asyncio.create_task(txt_to_cmd(drone, rotate_cmd))
+    t_motion = await wait_for_angular_motion(drone)
+    await cmd_task
+
+    latency_logger.log("test_rotate_clockwise", t_dispatch, latency_recorder.t_first_setpoint, t_motion)
+
     # Get end heading
     async for h in drone.telemetry.heading():
         end_heading = h.heading_deg
