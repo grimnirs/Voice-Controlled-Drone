@@ -30,14 +30,14 @@ def avg_readings(readings_buffer: deque):
 
 def stopping_distance(current_velocity: float, direction: str) -> float:
     DECELERATION = {
-        "forward":  1.5,   # was 3.0 - too optimistic
-        "up":       0.8,   # was 2.0 - gravity makes this much harder
-        "down":     0.6,   # was 1.5 - gravity actively assists descent
+        "forward":  1.0,   # was 3.0 - too optimistic
+        "up":       1.2,   # was 2.0 - gravity makes this much harder
+        "down":     1.2,   # was 1.5 - gravity actively assists descent
     }
     SAFETY_MARGIN = {
-        "forward":  3,   # was 0.3
-        "up":       1.0,   # was 0.5 - needs much more room
-        "down":     1.2,   # was 0.7
+        "forward":  1.5,   # was 0.3
+        "up":       1.5,   # was 0.5 - needs much more room
+        "down":     1.5,   # was 0.7
     }
 
     a = DECELERATION[direction]
