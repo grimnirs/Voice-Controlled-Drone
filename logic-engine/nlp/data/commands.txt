@@ -15,6 +15,9 @@ __label__fly_forward go straight
 __label__fly_forward straight ahead
 __label__fly_forward keep going forward
 __label__fly_forward move in a forward direction
+__label__fly_forward go onwards
+__label__fly_forward move onwards
+__label__fly_forward fly onwards
 __label__fly_forward head straight
 __label__fly_forward go north
 __label__fly_forward head north
@@ -143,6 +146,10 @@ __label__fly_up increase altitude
 __label__fly_up go higher
 __label__fly_up elevate
 __label__fly_up lift upward
+__label__fly_up lift up
+__label__fly_up lift higher
+__label__fly_up lift upward
+__label__fly_up lift the drone up
 __label__fly_up rise vertically
 __label__fly_up ascend vertically
 __label__fly_up gain more height

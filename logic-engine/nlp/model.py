@@ -1,10 +1,10 @@
 import fasttext
 import os
 import random
-from sklearn.metrics import confusion_matrix, classification_report
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+#from sklearn.metrics import confusion_matrix, classification_report
+#import pandas as pd
+#import seaborn as sns
+#import matplotlib.pyplot as plt
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -29,63 +29,63 @@ def train():
     model.save_model(MODEL_PATH)
     return model
 
-def generate_confusion_matrix():
-    test_path = os.path.join(BASE_DIR, "nlp", "data", "test_data.txt")
+# def generate_confusion_matrix():
+#     test_path = os.path.join(BASE_DIR, "nlp", "data", "test_data.txt")
 
-    y_true = []
-    y_pred = []
+#     y_true = []
+#     y_pred = []
 
-    with open(test_path, 'r') as f:
-        for line in f:
-            line = line.strip()
+#     with open(test_path, 'r') as f:
+#         for line in f:
+#             line = line.strip()
 
-            # Skip empty lines
-            if not line:
-                continue
+#             # Skip empty lines
+#             if not line:
+#                 continue
 
-            parts = line.split(" ", 1)
+#             parts = line.split(" ", 1)
 
-            # Skip malformed lines
-            if len(parts) < 2:
-                print("Skipping malformed line:", line)
-                continue
+#             # Skip malformed lines
+#             if len(parts) < 2:
+#                 print("Skipping malformed line:", line)
+#                 continue
 
-            label = parts[0].replace("__label__", "")
-            text = parts[1]
+#             label = parts[0].replace("__label__", "")
+#             text = parts[1]
 
-            pred_label, confidence = predict(text)
+#             pred_label, confidence = predict(text)
 
-            y_true.append(label)
-            y_pred.append(pred_label)
+#             y_true.append(label)
+#             y_pred.append(pred_label)
 
-    print("Samples collected:", len(y_true))
+#     print("Samples collected:", len(y_true))
 
-    labels = sorted(list(set(y_true)))
+#     labels = sorted(list(set(y_true)))
 
-    cm = confusion_matrix(y_true, y_pred, labels=labels)
+#     cm = confusion_matrix(y_true, y_pred, labels=labels)
 
-    df_cm = pd.DataFrame(cm, index=labels, columns=labels)
+#     df_cm = pd.DataFrame(cm, index=labels, columns=labels)
 
-    plt.figure(figsize=(12, 10))
+#     plt.figure(figsize=(12, 10))
 
-    sns.heatmap(
-        df_cm,
-        annot=True,
-        fmt="d",
-        cmap="Blues"
-    )
+#     sns.heatmap(
+#         df_cm,
+#         annot=True,
+#         fmt="d",
+#         cmap="Blues"
+#     )
 
-    plt.title("Confusion Matrix for fastText Intent Classifier")
-    plt.xlabel("Predicted Label")
-    plt.ylabel("True Label")
+#     plt.title("Confusion Matrix for fastText Intent Classifier")
+#     plt.xlabel("Predicted Label")
+#     plt.ylabel("True Label")
 
-    plt.tight_layout()
+#     plt.tight_layout()
 
-    plt.savefig("confusion_matrix.png")
+#     plt.savefig("confusion_matrix.png")
 
-    print("\nConfusion matrix image saved as confusion_matrix.png")
+#     print("\nConfusion matrix image saved as confusion_matrix.png")
 
-    plt.show()
+#     plt.show()
     
     
 def cross_validate(k=5):
@@ -203,4 +203,4 @@ def evaluate():
 
 if __name__ == "__main__":
     evaluate()
-    generate_confusion_matrix()
+    #generate_confusion_matrix()

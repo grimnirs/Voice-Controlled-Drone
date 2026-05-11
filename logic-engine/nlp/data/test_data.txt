@@ -297,6 +297,7 @@ __label__stop do not move at all
 __label__stop stay there
 __label__stop no movement allowed
 
+
 __label__arm power on the flight system
 __label__arm activate the drone motors
 __label__arm enable flight controls
@@ -367,3 +368,10 @@ __label__unknown that is not what I asked
 __label__unknown you got it wrong
 __label__unknown very good
 __label__unknown perfect
+__label__unknown over
+__label__unknown drone
+__label__unknown drone over
+__label__unknown copy that over
+__label__unknown understood over
+__label__unknown roger over
+__label__unknown come in over

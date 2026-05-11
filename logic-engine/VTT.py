@@ -19,7 +19,7 @@ RE_OVER = re.compile(r'\bover\b', re.IGNORECASE)
 RE_TRIGGERS = re.compile(r'\b(drone|over)\b', re.IGNORECASE)
 
 VALID_FLIGHT_COMMANDS = {
-    "fly": ["forward", "backward", "left", "right", "up", "down"],
+    "fly": ["forward", "backward", "left", "right", "up", "down", "north", "south", "east", "west"],
     "rotate": ["clockwise", "counter clockwise"],
     "land": [None],
     "take off": [None],
@@ -45,7 +45,12 @@ CMD = {
     "forwards", "backwards", "back", "reverse", "ahead", "straight",
     "launch", "lift", "takeoff", "initialize", "start",
     "touch", "come", "set", "please", "now", "immediately",
-    "emergency", "motors", "the", "to"
+    "emergency", "motors", "the", "to",
+    "take", "off", "takeoff",
+    "north", "south", "east", "west", "airborne", "clockwise",
+    "counter", "counterclockwise", "onwards", "counter clockwise",
+    "higher", "lower", "up", "down", "above", "below",
+    "faster", "slower", "further", "closer",
 }
 
 WORD_TO_DIGIT = {
@@ -65,7 +70,7 @@ for action, directions in VALID_FLIGHT_COMMANDS.items():
 # COMMAND_WORDS |= set(SYNONYM_MAP.keys())
 COMMAND_WORDS |= CMD
 COMMAND_WORDS |= set(WORD_TO_DIGIT.keys())
-COMMAND_WORDS |= {"drone", "over", "stop", "meters", "meter", "centimeters", "millimeters"}
+COMMAND_WORDS |= {"drone", "over", "stop", "meters", "meter", "centimeters", "millimeters", "take", "off", "takeoff"}
 COMMAND_WORDS |= {str(i) for i in range(100)}
 
 NOISE_PATTERNS = [
@@ -160,7 +165,8 @@ def main():
 
             has_drone = "drone" in rolling_buffer and not is_active
             has_over  = bool(RE_OVER.search(rolling_buffer))
-            has_stop  = "stop" in rolling_buffer
+            has_stop = bool(re.search(r'\bstop\b', rolling_buffer))
+
 
             if has_stop and is_active:
                 is_active, rolling_buffer = False, ""
@@ -178,9 +184,10 @@ def main():
                     t_start = time.time()
                     print(f"DEBUG predict input: '{cleaned}'")
                     #train_data = map_intent(cleaned)
+                    print(rolling_buffer)
                     intent, confidence = predict(cleaned)
                     print(f"DEBUG intent: {intent}, confidence: {confidence:.2f}")
-                    if confidence >= 0.5:
+                    if confidence >= 0.6:
                         # structured = parse_and_validate(intent)
                         action, direction = map_intent(intent)
 
