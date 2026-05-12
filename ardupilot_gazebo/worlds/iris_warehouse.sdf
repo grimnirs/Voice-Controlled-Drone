@@ -253,57 +253,71 @@
         <uri>model://iris_with_gimbal</uri>
     </include>
 
-<model name="depot_collision_cage">
-  <static>true</static>
-  <pose>0 0 0 0 0 0</pose>
-  <link name="cage_link">
+    <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Depot</uri>
+    </include>
 
-    <!-- floor -->
-    <collision name="floor">
-      <pose>-6.5 0 -0.05 0 0 0</pose>
-      <geometry><box><size>30 15 0.1</size></box></geometry>
-    </collision>
+    <include>
+        <pose>-9.4 1.6 0 0 0 -0.5</pose>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift</uri>
+    </include>
 
-    <!-- ceiling at z = 8.0 -->
-    <collision name="ceiling">
-      <pose>-6.5 0 8.0 0 0 0</pose>
-      <geometry><box><size>30 15 0.1</size></box></geometry>
-    </collision>
+    <include>
+        <pose>-13.2 -6.0 0.15 0 0 0</pose>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/fog emitter</uri>
+    </include>
 
-    <!-- Forward Wall: 20.81m ahead of drone (20.81 - 6 = 14.81) -->
-    <collision name="wall_forward">
-      <pose>14.81 -0.215 4.0 0 0 0</pose>
-      <geometry>
-        <box><size>0.1 14.57 8.0</size></box>
-      </geometry>
-    </collision>
+    <model name="depot_collision_cage">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="cage_link">
 
-    <!-- Back Wall: 8.9m behind drone (-8.9 - 6 = -14.9) -->
-    <collision name="wall_back">
-      <pose>-14.9 -0.215 4.0 0 0 0</pose>
-      <geometry>
-        <box><size>0.1 14.57 8.0</size></box>
-      </geometry>
-    </collision>
+        <!-- floor -->
+        <collision name="floor">
+          <pose>-6.5 0 -0.05 0 0 0</pose>
+          <geometry><box><size>30 15 0.1</size></box></geometry>
+        </collision>
 
-    <!-- Left Wall: 7.07m to the left (Positive Y) -->
-    <collision name="wall_left">
-      <pose>-0.045 7.07 4.0 0 0 0</pose>
-      <geometry>
-        <box><size>29.71 0.1 8.0</size></box>
-      </geometry>
-    </collision>
+        <!-- ceiling at z = 8.0 -->
+        <collision name="ceiling">
+          <pose>-6.5 0 8.0 0 0 0</pose>
+          <geometry><box><size>30 15 0.1</size></box></geometry>
+        </collision>
 
-    <!-- Right Wall: 7.5m to the right (Negative Y) -->
-    <collision name="wall_right">
-      <pose>-0.045 -7.5 4.0 0 0 0</pose>
-      <geometry>
-        <box><size>29.71 0.1 8.0</size></box>
-      </geometry>
-    </collision>
+        <!-- Forward Wall: 20.81m ahead of drone (20.81 - 6 = 14.81) -->
+        <collision name="wall_forward">
+          <pose>14.81 -0.215 4.0 0 0 0</pose>
+          <geometry>
+            <box><size>0.1 14.57 8.0</size></box>
+          </geometry>
+        </collision>
 
-  </link>
-</model>
+        <!-- Back Wall: 8.9m behind drone (-8.9 - 6 = -14.9) -->
+        <collision name="wall_back">
+          <pose>-14.9 -0.215 4.0 0 0 0</pose>
+          <geometry>
+            <box><size>0.1 14.57 8.0</size></box>
+          </geometry>
+        </collision>
+
+        <!-- Left Wall: 7.07m to the left (Positive Y) -->
+        <collision name="wall_left">
+          <pose>-0.045 7.07 4.0 0 0 0</pose>
+          <geometry>
+            <box><size>29.71 0.1 8.0</size></box>
+          </geometry>
+        </collision>
+
+        <!-- Right Wall: 7.5m to the right (Negative Y) -->
+        <collision name="wall_right">
+          <pose>-0.045 -7.5 4.0 0 0 0</pose>
+          <geometry>
+            <box><size>29.71 0.1 8.0</size></box>
+          </geometry>
+        </collision>
+
+      </link>
+    </model>
 
   </world>
 </sdf>
