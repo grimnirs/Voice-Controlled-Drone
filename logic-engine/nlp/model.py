@@ -10,20 +10,20 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 MODEL_PATH = os.path.join(BASE_DIR, "models", "fasttext.bin")
 DATA_PATH = os.path.join(BASE_DIR, "nlp", "data", "commands.txt")
-
+#bayesian approach
 
 def train():
     model = fasttext.train_supervised(
-        input=DATA_PATH,
-        epoch=100,
-        lr=0.5,            # A bit more aggressive learning
-        wordNgrams=2,      # CRITICAL: Change 1000 back to 2
-        dim=15,            # Lowered to 20; you have very few words
-        loss='softmax',
-        minn=2,            # Catch shorter word roots
-        maxn=5,
-        bucket=200000
-    )
+    input=DATA_PATH,
+    epoch=200,
+    lr=0.4,
+    wordNgrams=3,    # catch more phrase patterns
+    dim=50,          # more room to separate intents
+    loss='softmax',
+    minn=2,
+    maxn=6,
+    bucket=200000
+)
 
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     model.save_model(MODEL_PATH)

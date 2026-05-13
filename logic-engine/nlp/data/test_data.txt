@@ -1,4 +1,5 @@
 __label__fly_forward continue straight ahead
+__label__fly_forward continue straight ahead 2 meters
 __label__fly_forward advance forward slowly
 __label__fly_forward proceed ahead about 4 meters
 __label__fly_forward continue ahead for 5 meters
@@ -28,9 +29,15 @@ __label__fly_forward go further ahead
 __label__fly_forward dart forward
 __label__fly_forward jet ahead
 __label__fly_forward propel forward
+__label__fly_forward head north
+__label__fly_forward go ahead north
+__label__fly_forward move north
+
+
 
 __label__fly_left slide toward the left side
 __label__fly_left shift left a little
+__label__fly_left move west 3 meters
 __label__fly_left move west 3 meters
 __label__fly_left shift west slightly
 __label__fly_left move sideways toward the left
@@ -53,11 +60,17 @@ __label__fly_left veer to the left a bit
 __label__fly_left head to the west
 __label__fly_left left a little
 __label__fly_left left please
-__label__fly_left take it left
+__label__fly_left take it left 2 meters
+__label__fly_left go west 2 meters
+__label__fly_left go left 2 meters
+__label__fly_left go left 3 meters
+__label__fly_left go left 5 meters
+__label__fly_left go left ten meters
 
 __label__fly_right slide toward the right side
 __label__fly_right shift right slightly
 __label__fly_right move east 4 meters
+__label__fly_right move east 2 meters
 __label__fly_right shift east slightly
 __label__fly_right move sideways toward the right
 __label__fly_right move toward the starboard side
@@ -72,7 +85,7 @@ __label__fly_right ease right
 __label__fly_right move it right slightly
 __label__fly_right a little to the right
 __label__fly_right shift over right
-__label__fly_right scoot right
+__label__fly_right scoot right 2 meters
 __label__fly_right push it to the right
 __label__fly_right go right a meter
 __label__fly_right veer to the right a bit
@@ -80,6 +93,14 @@ __label__fly_right head to the east
 __label__fly_right right a little
 __label__fly_right right please
 __label__fly_right take it right
+__label__fly_right go right 2 meters
+__label__fly_right go right 3 meters
+__label__fly_right go right 5 meters
+__label__fly_right go right four meters
+__label__fly_right head right 2 meters
+__label__fly_right head right 3 meters
+__label__fly_right head right 4 meters
+__label__fly_right head right five meters
 
 __label__fly_up gain altitude
 __label__fly_up increase height by 2 meters
@@ -117,7 +138,7 @@ __label__fly_down descend toward the ground
 __label__fly_down reduce height slowly
 __label__fly_down descend toward the surface
 __label__fly_down lower the drone carefully
-__label__fly_down drop down lower
+__label__fly_down drop down lower 2 meters
 __label__fly_down descend to three meters
 __label__fly_down sink slowly toward the floor
 __label__fly_down decrease current altitude
@@ -138,6 +159,12 @@ __label__fly_down bring her down
 __label__fly_down float down please
 
 __label__fly_backward retreat backward
+__label__fly_backward travel backwards two meters
+__label__fly_backward travel backwards three meters
+__label__fly_backward travel backwards four meters
+__label__fly_backward travel backwards five meters
+__label__fly_backward travel backward four meters
+__label__fly_backward travel backward two meters
 __label__fly_backward reverse direction slowly
 __label__fly_backward move away from current position
 __label__fly_backward move backward slowly
@@ -199,8 +226,8 @@ __label__rotate_counterclockwise spin it left
 __label__rotate_counterclockwise face it to the left
 __label__rotate_counterclockwise spin counterclockwise a little
 __label__rotate_counterclockwise do a counterclockwise yaw
-__label__rotate_counterclockwise make a left rotation
-__label__rotate_counterclockwise swing it left
+__label__rotate_counterclockwise clockwise make a left rotation
+__label__rotate_counterclockwise clockwise swing it left
 __label__rotate_counterclockwise quarter spin to the left
 __label__rotate_counterclockwise turn it left on its axis
 __label__rotate_counterclockwise yaw it to the left
@@ -264,7 +291,6 @@ __label__stop maintain current position
 __label__stop freeze all drone movement
 __label__stop halt all drone activity
 __label__stop kill all movement
-__label__stop hover in place
 __label__stop break immediately
 __label__stop abort movement immediately
 __label__stop kill all motor rotation
@@ -375,3 +401,29 @@ __label__unknown copy that over
 __label__unknown understood over
 __label__unknown roger over
 __label__unknown come in over
+__label__unknown rotate three meters
+__label__unknown rotate 3 meters
+__label__unknown rotate two meters
+__label__unknown rotate five meters
+
+__label__fly_forward go north 5 meters
+__label__fly_forward go north 10 meters
+__label__fly_forward go north 3 meters
+__label__fly_forward head north 5 meters
+__label__fly_forward head north 2 meters
+__label__fly_forward head north 8 meters
+__label__fly_forward move north 4 meters
+__label__fly_forward fly north 6 meters
+__label__fly_forward fly north 10 meters
+__label__fly_backward go south 5 meters
+__label__fly_backward go south 10 meters
+__label__fly_backward head south 3 meters
+__label__fly_backward fly south 7 meters
+__label__fly_left go west 5 meters
+__label__fly_left go west 10 meters
+__label__fly_left head west 3 meters
+__label__fly_left fly west 8 meters
+__label__fly_right go east 5 meters
+__label__fly_right go east 10 meters
+__label__fly_right head east 3 meters
+__label__fly_right fly east 8 meters

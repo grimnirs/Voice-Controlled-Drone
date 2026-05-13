@@ -37,6 +37,16 @@ __label__fly_forward continue your path
 __label__fly_forward stay on course forward
 __label__fly_forward keep the heading
 __label__fly_forward maintain forward direction
+__label__fly_forward fly north 10 meters
+__label__fly_forward fly north 5 meters
+__label__fly_forward fly north 3 meters
+__label__fly_forward move north 10 meters
+__label__fly_forward go north 10 meters
+__label__fly_forward head north 10 meters
+__label__fly_forward travel north 10 meters
+__label__fly_forward fly north two meters
+__label__fly_forward fly north five meters
+__label__fly_forward move north three meters
 
 __label__fly_backward fly backward
 __label__fly_backward move backward
@@ -102,6 +112,16 @@ __label__fly_left move toward the left
 __label__fly_left head to the left
 __label__fly_left toward the port side
 __label__fly_left move portward
+__label__fly_left fly left one meter
+__label__fly_left fly left two meters
+__label__fly_left fly left three meters
+__label__fly_left fly left four meters
+__label__fly_left fly left five meters
+__label__fly_left fly left six meters
+__label__fly_left fly left seven meters
+__label__fly_left fly left eight meters
+__label__fly_left fly left nine meters
+__label__fly_left fly left ten meters
 
 __label__fly_right fly right
 __label__fly_right move right
@@ -136,6 +156,16 @@ __label__fly_right move toward the right
 __label__fly_right head to the right
 __label__fly_right toward the starboard side
 __label__fly_right move starboard
+__label__fly_right fly right one meter
+__label__fly_right fly right two meters
+__label__fly_right fly right three meters
+__label__fly_right fly right four meters
+__label__fly_right fly right five meters
+__label__fly_right fly right six meters
+__label__fly_right fly right seven meters
+__label__fly_right fly right eight meters
+__label__fly_right fly right nine meters
+__label__fly_right fly right ten meters
 
 __label__fly_up fly up
 __label__fly_up ascend
@@ -176,6 +206,18 @@ __label__fly_up rise higher
 __label__fly_up get higher
 __label__fly_up jump up
 __label__fly_up go upward
+__label__fly_up fly up two meters
+__label__fly_up fly up one meter
+__label__fly_up fly up three meters
+__label__fly_up fly up four meters
+__label__fly_up fly up five meters
+__label__fly_up ascend two meters
+__label__fly_up ascend three meters
+__label__fly_up ascend four meters
+__label__fly_up go up two meters
+__label__fly_up go up three meters
+__label__fly_up rise two meters
+__label__fly_up climb three meters
 
 __label__fly_down fly down
 __label__fly_down descend
@@ -206,6 +248,13 @@ __label__fly_down take it lower
 __label__fly_down fly lower
 __label__fly_down dip down
 __label__fly_down glide downward
+__label__fly_down fly down two meters
+__label__fly_down fly down one meter
+__label__fly_down descend two meters
+__label__fly_down descend one meter
+__label__fly_down go down two meters
+__label__fly_down lower two meters
+__label__fly_down drop three meters
 
 __label__rotate_clockwise rotate clockwise
 __label__rotate_clockwise spin clockwise
@@ -235,12 +284,13 @@ __label__rotate_clockwise rotate right on the spot
 __label__rotate_clockwise quarter turn right
 __label__rotate_clockwise half turn right
 
+
 __label__rotate_counterclockwise rotate counterclockwise
-__label__rotate_counterclockwise spin counterclockwise
+__label__rotate_counterclockwise spin counter
 __label__rotate_counterclockwise yaw left
 __label__rotate_counterclockwise rotate left
 __label__rotate_counterclockwise turn in place left
-__label__rotate_counterclockwise counterclockwise rotation
+__label__rotate_counterclockwise counter rotation
 __label__rotate_counterclockwise pivot left
 __label__rotate_counterclockwise spin to the left
 __label__rotate_counterclockwise rotate on axis left
@@ -262,6 +312,7 @@ __label__rotate_counterclockwise do a left yaw
 __label__rotate_counterclockwise rotate left on the spot
 __label__rotate_counterclockwise quarter turn left
 __label__rotate_counterclockwise half turn left
+
 
 __label__takeoff take off
 __label__takeoff launch
@@ -359,8 +410,6 @@ __label__stop stay put
 __label__stop hold still
 __label__stop pause
 __label__stop do not go anywhere
-__label__stop hover
-__label__stop hover in place
 __label__stop hold your position
 __label__stop maintain position
 __label__stop kill power
@@ -455,3 +504,17 @@ __label__unknown hello
 __label__unknown what can you do
 __label__unknown tell me something interesting
 __label__unknown what is the meaning of life
+__label__unknown fly to go to
+__label__unknown fly to
+__label__unknown go to the
+__label__unknown to go
+__label__unknown fly fly
+__label__unknown move to the
+__label__unknown go to
+__label__unknown to the
+__label__unknown fly up to
+__label__unknown head to the
+__label__unknown drift to the
+__label__unknown go to the left
+__label__unknown move to the right
+

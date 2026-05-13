@@ -21,15 +21,30 @@ async def cmd_handler(drone):
     while True:
         if os.path.exists(command_file):
             try:
+                # with open(command_file, 'r') as f:
+                #     v_commands = json.load(f)
+
+                # if len(v_commands) > last_idx + 1:
+                #     new_commands = v_commands[last_idx + 1:]
+                #     last_idx = len(v_commands) - 1
+                #     for command in new_commands:
+                #         print(f"> > > New Voice Command: {command}")
+                #         await txt_to_cmd(drone, command)
+                v_commands = []
                 with open(command_file, 'r') as f:
                     v_commands = json.load(f)
+                
+                if v_commands:
+                    with open(command_file, 'w') as f:
+                        json.dump([], f)
+                
+                print(f"> > > Processing {len(v_commands)} commands from JSON")
 
-                if len(v_commands) > last_idx + 1:
-                    new_commands = v_commands[last_idx + 1:]
-                    last_idx = len(v_commands) - 1
-                    for command in new_commands:
-                        print(f"> > > New Voice Command: {command}")
-                        await txt_to_cmd(drone, command)
+                for command in v_commands:
+                    print(f"> > > Executing {command}")
+                    await txt_to_cmd(command)
+                
+                print(f"> > > Execution complete for JSON")
 
             except (json.JSONDecodeError, Exception) as e:
                 print(f"Error reading commands: {e}")
