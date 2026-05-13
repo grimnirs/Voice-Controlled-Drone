@@ -23,21 +23,17 @@ ACTIONS = {
     "stop_hover":str,
 }
 
-#NED - North, East, Down
 DIRECTIONS = {
     "forward":              (1, 0, 0, 0),   # om problem Ãndra till (1, 0, 0)
-    "backward":             (-1, 0, 0, 0),
-    "north":                (0, 1, 0, 0),
-    "right":                (0, 1, 0, 0), 
-    "south":                (-1, 0, 0, 0),  
-    "left":                 (0, -1, 0, 0),
-    "east":                (0, 1, 0, 0),   
-    "up":                   (0, 0, -1, 0),
-    "west":                 (0, 0, 1, 0),  
+    "backward":             (-1, 0, 0, 0),  
+    "right":                (0, 1, 0, 0),   
+    "left":                 (0, -1, 0, 0),   
+    "up":                   (0, 0, -1, 0), 
+    "down":                 (0, 0, 1, 0),  
     "clockwise":            (0, 0, 0, 1),
-    "counter clockwise":    (0, 0, 0, -1),
-    "counterclockwise":    (0, 0, 0, -1)
+    "counter clockwise":    (0, 0, 0, -1)
 }
+
 
 async def cmd_arm(drone, command: DroneCommand):
     async for health in drone.telemetry.health():
@@ -136,18 +132,13 @@ async def cmd_fly(drone, command:DroneCommand):
         break
     
     print("-- Initializing movement sequence --")
-    #
-
-    #velocity = min(2, integer)
-    #threshold = max(integer - velocity, 0.0)    
+      
     direction_key = command.get("direction")
     integer = float(command.get("integer")) 
     unit = command.get("unit")
-    #velocity = 2
     velocity = min(2, integer)
+    #velocity = 2
     threshold = max(integer - velocity, 0.0)  
-    MIN_ALTITUDE = 0.5
-    MAX_ALTITUDE = 10.0
     
     if direction_key is None or integer is None or unit is None:
         print(f"Action requires direction, integer and unit!") 
@@ -164,48 +155,20 @@ async def cmd_fly(drone, command:DroneCommand):
     down = direction_vector[2] * velocity
 
     start_xyz = await get_local_xyz_m(drone)
-    current_altitude = -start_xyz[2]
-
-    # if direction_key == "down":
-    #     max_allowed = current_altitude - MIN_ALTITUDE
-    #     if integer > max_allowed:
-    #         print(f"Clamping descent from {integer}m to {max_allowed:.2f}m")
-    #         integer = max(0, max_allowed)
-
-    # # Stop UP if too high
-    # if direction_key == "up":
-    #     if current_altitude >= MAX_ALTITUDE:
-    #         print("Max altitude reached")
-    #         return
     
     try:
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         await drone.offboard.start()
-        #safety_margin = velocity
-        #start = asyncio.get_event_loop().time() 
 
         while True: 
             current_xyz = await get_local_xyz_m(drone)
             if current_xyz is not None:
                 if command.get("direction") == "up":
-                    # max_allowed = MAX_ALTITUDE - current_altitude
-                    # if current_altitude >= MAX_ALTITUDE:
-                    #     print("Max altitude reached")
-                    #     return
-                    # elif ithresholdd:
-                    #     print("Already at max altitude, cannot descend further")
-                    #     return
                     travelled = abs(current_xyz[2] - start_xyz[2])
 
                 elif command.get("direction") == "down":
-                    # max_allowed = current_altitude - MIN_ALTITUDE
-                    # if integer > max_allowed:
-                    #     integer = max(0, max_allowed)
-                    # if integer <= 0:
-                    #     print("Already at minimum altitude, cannot descend further")
-                    #     return
-                    
                     travelled = abs(current_xyz[2] - start_xyz[2])
+
                 else:
                     travelled = math.sqrt(
                         (current_xyz[0] - start_xyz[0]) ** 2 +
