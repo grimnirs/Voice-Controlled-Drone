@@ -42,7 +42,7 @@ async def cmd_handler(drone):
 
                 for command in v_commands:
                     print(f"> > > Executing {command}")
-                    await txt_to_cmd(command)
+                    await txt_to_cmd(drone, command)
                 
                 print(f"> > > Execution complete for JSON")
 

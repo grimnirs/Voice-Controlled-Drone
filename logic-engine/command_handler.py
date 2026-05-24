@@ -2,6 +2,7 @@ from mavsdk.offboard import VelocityBodyYawspeed
 import math
 from typing import TypedDict, Optional
 import asyncio
+from collision_handler import is_obstacle_forward, get_forward_distance, is_obstacle_up, get_up_distance, get_down_distance, is_obstacle_down, enable_sensors, disable_sensors
  
 _hover_task: Optional[asyncio.Task] = None
 
@@ -15,7 +16,7 @@ ACTIONS = {
     "arm":str,
     "start":str,
     "take off":str,
-    "takeoff":str,  # Tillagt från espa
+    "takeoff":str, 
     "land":str,
     "fly":str,
     "rotate":str,
@@ -23,6 +24,7 @@ ACTIONS = {
     "stop_hover":str,
 }
 
+#NED - North, East, Down
 DIRECTIONS = {
     "forward":              (1, 0, 0, 0),   # om problem Ãndra till (1, 0, 0)
     "backward":             (-1, 0, 0, 0),  
@@ -34,7 +36,6 @@ DIRECTIONS = {
     "counter clockwise":    (0, 0, 0, -1)
 }
 
-
 async def cmd_arm(drone, command: DroneCommand):
     async for health in drone.telemetry.health():
         if health.is_global_position_ok and health.is_home_position_ok:
@@ -44,18 +45,12 @@ async def cmd_arm(drone, command: DroneCommand):
             print("Health not ready...")
             await asyncio.sleep(2)
 
-    print("-- Switching to GUIDED mode --")
-    try:
-        await drone.action.set_flight_mode_guided()
-        await asyncio.sleep(1)
-    except Exception as e:
-        print(f"Mode switch warning: {e}")
-
     print("-- Arming motors --")
     while True:
         try:
             await drone.action.arm()
             print("✅ Armed!")
+            disable_sensors()
             break
         except Exception as e:
             print(f"Arming failed: {e}")
@@ -70,7 +65,7 @@ async def cmd_takeoff(drone, command: DroneCommand):
             break
         else:
             print("Waiting for arm...")
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
 
     print("-- Takeoff --")
     try:
@@ -124,6 +119,7 @@ async def get_local_xyz_m(drone):
 
 async def cmd_fly(drone, command:DroneCommand):
     await stop_hover()
+    enable_sensors()
 
     async for in_air in drone.telemetry.in_air():
         if not in_air:
@@ -132,13 +128,15 @@ async def cmd_fly(drone, command:DroneCommand):
         break
     
     print("-- Initializing movement sequence --")
-      
+    
     direction_key = command.get("direction")
     integer = float(command.get("integer")) 
     unit = command.get("unit")
     velocity = min(2, integer)
     #velocity = 2
-    threshold = max(integer - velocity, 0.0)  
+    threshold = max(integer - velocity, 0.0)
+    MIN_ALTITUDE = 0.5
+    MAX_ALTITUDE = 10.0
     
     if direction_key is None or integer is None or unit is None:
         print(f"Action requires direction, integer and unit!") 
@@ -155,12 +153,25 @@ async def cmd_fly(drone, command:DroneCommand):
     down = direction_vector[2] * velocity
 
     start_xyz = await get_local_xyz_m(drone)
+    current_altitude = -start_xyz[2]
     
     try:
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await drone.offboard.start()
+        await drone.offboard.start() 
 
         while True: 
+            if direction_key == "forward" and is_obstacle_forward(velocity):
+                print(f"<<<EMERGENCY STOPPING>>> Drone is {get_forward_distance():.2f}m from an obstacle!")
+                break
+
+            if direction_key == "up" and is_obstacle_up(velocity):
+                print(f"<<<EMERGENCY STOPPING>>> Drone is {get_up_distance():.2f}m from an obstacle!")
+                break
+
+            if direction_key == "down" and is_obstacle_down(velocity):
+                print(f"<<<EMERGENCY STOPPING>>> Drone is {get_down_distance():.2f}m from the ground!")
+                break
+            
             current_xyz = await get_local_xyz_m(drone)
             if current_xyz is not None:
                 if command.get("direction") == "up":
@@ -168,7 +179,7 @@ async def cmd_fly(drone, command:DroneCommand):
 
                 elif command.get("direction") == "down":
                     travelled = abs(current_xyz[2] - start_xyz[2])
-
+                
                 else:
                     travelled = math.sqrt(
                         (current_xyz[0] - start_xyz[0]) ** 2 +
@@ -178,11 +189,24 @@ async def cmd_fly(drone, command:DroneCommand):
                 break
 
             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(fwd, right, down, 0.0))
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
 
         # Hold hover briefly, then return so next command can run.
+        if command.get("direction") == "up":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, abs(down), 0.0))
+            await asyncio.sleep(0.8)
+        elif command.get("direction") == "down":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, -down, 0.0))
+            await asyncio.sleep(1.2)
+        elif command.get("direction") == "forward":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(-1.5, 0.0, 0.0, 0.0)) #ändra kanske
+            await asyncio.sleep(0.3)
+        elif command.get("direction") == "backward":
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(1.5, 0.0, 0.0, 0.0)) #ändra kanske
+            await asyncio.sleep(0.3)
+
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.05)
         print("Flight complete!")
         await start_hover(drone)
         return
@@ -218,7 +242,7 @@ async def cmd_rotate(drone, command: DroneCommand):
     if rotation == "clockwise":
         target_heading = (start_yaw + degree) % 360
         direction_mult = 1
-    elif rotation == "counter clockwise" or rotation == "counterclockwise":
+    elif rotation == "counter clockwise":
         target_heading = (start_yaw - degree) % 360
         direction_mult = -1
     else: 
@@ -234,7 +258,7 @@ async def cmd_rotate(drone, command: DroneCommand):
         
             diff_from_target_degree = (target_heading - current_heading + 180) % 360 - 180
 
-            if abs(diff_from_target_degree) < 2.0:
+            if abs(diff_from_target_degree) < 5.0:  # helst 2 men 5 om datorn är långsam när testerna körs
                 print(f"Target reached at {current_heading:.1f}!")
                 break
 
@@ -287,5 +311,5 @@ async def txt_to_cmd(drone, command: DroneCommand):
         await cmd_stop_hover(drone, command)
 
     else:
-        print("Unknown command", {command})
+        print("Unknown command: {command}")
         return

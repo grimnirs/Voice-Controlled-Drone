@@ -11,8 +11,8 @@ from nlp.intent_map import map_intent
 
 #Imports & config
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-WHISPER_BIN = os.environ.get("WHISPER_BIN", "/Users/feliciafalldin/Kanden/Voice-Controlled-Drone/whisper.cpp/build/bin/whisper-stream")
-WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "/Users/feliciafalldin/Kanden/Voice-Controlled-Drone/whisper.cpp/models/ggml-base.en.bin")
+WHISPER_BIN = "/Users/emmi/Documents/UU/kandidat/Voice-Controlled-Drone/whisper.cpp/build/bin/whisper-stream"
+WHISPER_MODEL = "/Users/emmi/Documents/UU/kandidat/Voice-Controlled-Drone/whisper.cpp/models/ggml-base.en.bin"
 COMMANDS_FILE = os.path.join(BASE_DIR, "commands.json")
 
 #regex constants, detects end-of-command signal
@@ -328,6 +328,9 @@ def main():
                 commands = parse_multi_command(cleaned)
 
                 if commands:
+
+                    _command_log.clear()
+
                     for structured in commands:
                         append_command(structured)
                         print(f"✓ Command: {structured}")
